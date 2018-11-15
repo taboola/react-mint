@@ -1,0 +1,15 @@
+html, body {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+
+body {
+  font: 14px Roboto;
+  color: #303030;
+}
+
+a {
+  color: #303030;
+  text-decoration: none;
+}

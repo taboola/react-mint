@@ -1,0 +1,37 @@
+{
+  "name": "react-taboola-tip",
+  "version": "0.9.2",
+  "description": "tooltips written in react for react",
+  "main": "./dist/index.js",
+  "scripts": {
+    "start": "webpack-dev-server --content-base demo/public/ --config webpack.dev.js --display-error-details",
+    "build": "webpack --config webpack.prod.js"
+  },
+  "keywords": [
+    "react",
+    "tooltip"
+  ],
+  "author": "tunamelt",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "16.x",
+    "react-dom": "16.x"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "babel-minify-webpack-plugin": "^0.3.1",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
+    "webpack": "^4.23.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
+  },
+  "dependencies": {
+    "memoize-one": "^4.0.2"
+  }
+}
