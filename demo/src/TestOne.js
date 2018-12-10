@@ -1,14 +1,21 @@
 import React, { Component } from 'react';
-import { Tooltip } from '../../src'
+import { Tooltip, TooltipPortal } from '../../src'
 
-export class Test extends Component {
+export class TestOne extends Component {
   state = {
     width: 100,
     clicked: true,
   }
   render = () => {
     return (
-      <div>
+      <TooltipPortal
+        portal={this.state.clicked}
+        // themes={{
+        //   default: {color: 'red'},
+        //   night: {color: 'AliceBlue', boxStyle: {color: 'black'}}
+        // }}
+        // defaultTheme={this.state.clicked ? 'night' : 'default'} 
+      >
         <div
           style={{
             marginLeft: 200,
@@ -21,7 +28,7 @@ export class Test extends Component {
           //   clicked: !clicked
           // }))}
         >
-          <Tooltip position={'right'} width={this.state.width} clickable={this.state.clicked}>
+          <Tooltip position={'bottom'} width={this.state.width} showing={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
               {'test 2'}
@@ -33,9 +40,14 @@ export class Test extends Component {
             width: 200,
             clicked: !clicked
           }))}>
-          <div style={{display: 'inline-block', backgroundColor: 'blue', width: '50px'}}>{'test2'}</div>
+          <div style={{display: 'inline-block', backgroundColor: 'blue', width: '50px'}}>
+            {'test2'}
+            <Tooltip theme={'night'} position={'right'} showing={true}>
+              {'test'}
+            </Tooltip>
+          </div>
         </div>
-      </div>
+      </TooltipPortal>
     )
   }
 }

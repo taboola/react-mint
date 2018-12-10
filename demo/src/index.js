@@ -1,11 +1,10 @@
 import React from 'react'
 import { render } from 'react-dom'
 
-import { Test } from './Test'
+import { TestOne } from './TestOne';
+import { TestTwo } from './TestTwo'
 
 render(
-  <div id={'tooltip'}>
-    <Test />
-  </div>, 
+  <TestTwo />,
   document.querySelector('#root')
 );

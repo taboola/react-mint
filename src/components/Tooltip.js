@@ -1,7 +1,7 @@
 import React, { Component, createRef } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom'
-import { shallowEqualForeignProps } from '../utils'
+import { shallowEqualForeignProps, defaultPortalId } from '../utils'
 import Memoize from 'memoize-one'
 
 const defaultColor = '#282828';
@@ -40,7 +40,7 @@ export class Tooltip extends Component {
     getTransitionStyle: getDefaultTransitionStyle,
     tailWidth: defaultTailWidth,
     offset: defaultOffset,
-    portalId: 'tooltip'
+    portalId: defaultPortalId
   }
   state = {
     width: 0,
@@ -179,11 +179,16 @@ export class Tooltip extends Component {
     })
   })
   setSourceRect = () => {
-    this.sourceRect = this.props.sourceRef.getBoundingClientRect();
+    const { sourceRef } = this.props
+    if(sourceRef) {
+      this.sourceRect = sourceRef.getBoundingClientRect();
+    }
     return this.sourceRect;
   }
   setTooltipRect = () => {
-    this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
+    if(this.tooltipRef.current) {
+      this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
+    }
     return this.tooltipRect;
   }
   findScrollParent = () => {
@@ -278,6 +283,13 @@ export class Tooltip extends Component {
         }
     }
   })
+  getPortalElement = Memoize((portalId) => {
+    const element = document.getElementById(portalId);
+    if(!element && process.env.NODE_ENV !== 'production') {
+      throw new Error(`Could not find DOM element with ID ${portalId} to inject. Please provide a portalId which matches an existing DOM element or render a TooltipPortal as a parent to this element.`)
+    }
+    return element;
+  })
   render = () => {
     const {
       children,
@@ -290,6 +302,8 @@ export class Tooltip extends Component {
       entering,
       duration,
       getTransitionStyle,
+      boxStyle,
+      tailStyle,
     } = this.props
 
     const {
@@ -298,16 +312,20 @@ export class Tooltip extends Component {
       top,
       left
     } = this.state
+    const element = this.getPortalElement(portalId);
+    if(!element) {
+      return null;
+    }
     const tooltip = (
       <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
         <div style={getTransitionStyle(entering, duration)}>
-          <div style={this.getBoxStyle(color)}>
+          <div style={this.getBoxStyle(color, boxStyle)}>
             {children}
           </div>
-          <div style={this.getTailStyle(color, position, tailWidth, width, height)}/>
+          <div style={this.getTailStyle(color, position, tailWidth, width, height, tailStyle)}/>
         </div>
       </div>
     )
-    return inline ? tooltip : createPortal(tooltip, document.getElementById(portalId))
+    return inline ? tooltip : createPortal(tooltip, element)
   }
 }

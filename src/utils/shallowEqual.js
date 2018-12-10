@@ -97,7 +97,6 @@ export function shallowEqualForeignProps(objA, objB, nativeProps) {
       (!hasOwnProperty.call(objB, keysA[i]) ||
       !is(objA[keysA[i]], objB[keysA[i]]))
     ) {
-      console.log(keysA[i])
       return false;
     }
   }

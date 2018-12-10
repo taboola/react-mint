@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Tooltip, tooltipPropTypes } from './Tooltip'
 import { Transition } from './Transition';
+import { TooltipContext } from './tooltipContext';
+import { defaultPortalId } from '../utils';
 
 export class TooltipConsumer extends Component {
   static propTypes = {
@@ -10,7 +12,8 @@ export class TooltipConsumer extends Component {
     sourceRef: PropTypes.instanceOf(Element),
     duration: PropTypes.number,
     delay: PropTypes.number,
-    show: PropTypes.bool,
+    theme: PropTypes.string,
+    showing: PropTypes.bool,
     hoverable: PropTypes.bool,
     clickable: PropTypes.bool,
   }
@@ -90,10 +93,11 @@ export class TooltipConsumer extends Component {
   render = () => {
     const {
       children,
-      show,
+      showing,
       sourceRef: _,
       duration,
       delay,
+      theme,
       ...rest
     } = this.props
     const {
@@ -101,20 +105,29 @@ export class TooltipConsumer extends Component {
       sourceRef
     } = this.state
     return (
-      <div ref={this.setRef}>
-        <Transition enter={sourceRef && (hovered || show)} timeout={duration}>
-          {(entering) => (
-            <Tooltip
-              sourceRef={sourceRef}
-              entering={entering}
-              duration={duration}
-              {...rest}
-            >
-              {children}
-            </Tooltip>
-          )}
-        </Transition>
-      </div>
+      <TooltipContext.Consumer>
+        {({themes, defaultTheme, portalId}) => {
+          let themeProps = themes && (themes[theme] || themes[defaultTheme]);
+          return (
+            <div className={'tooltip-source'} ref={this.setRef}>
+              <Transition enter={sourceRef && (hovered || showing)} timeout={duration}>
+                {(entering) => (
+                  <Tooltip
+                    sourceRef={sourceRef}
+                    entering={entering}
+                    duration={duration}
+                    portalId={portalId || defaultPortalId}
+                    {...themeProps}
+                    {...rest}
+                  >
+                    {children}
+                  </Tooltip>
+                )}
+              </Transition>
+            </div>
+          )
+        }}
+      </TooltipContext.Consumer>
     )
   }
 }
