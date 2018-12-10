@@ -6,7 +6,7 @@ export class Test extends Component {
     return (
       <div>
         <div style={{display: 'inline-block', backgroundColor: 'purple', width: '100px'}}>
-          <Tooltip position={'bottom'}>
+          <Tooltip position={'bottom'} show={true}>
             {'test tip'}
           </Tooltip>
           {'test'}

@@ -1,3 +1,2 @@
-// export { TooltipConsumer as Tooltip } from './TooltipConsumer'
-import {TooltipConsumer} from './TooltipConsumer'
+import { TooltipConsumer } from './components'
 export const Tooltip = TooltipConsumer

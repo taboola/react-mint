@@ -1,4 +1,4 @@
-import React, { Component, cloneElement } from 'react';
+import React, { Component } from 'react';
 
 export class Transition extends Component {
   state = {

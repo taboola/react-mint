@@ -1,0 +1,1 @@
+export { TooltipConsumer } from './TooltipConsumer'

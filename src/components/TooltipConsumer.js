@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Tooltip from './Tooltip'
+import { Tooltip } from './Tooltip'
 import { Transition } from './Transition';
 
 export class TooltipConsumer extends Component {

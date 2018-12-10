@@ -1,6 +1,6 @@
 import React, { Component, createRef } from 'react';
 import { createPortal } from 'react-dom'
-import { shallowEqual } from './utils'
+import { shallowEqual } from '../utils'
 import Memoize from 'memoize-one'
 
 const defaultColor = '#282828';
@@ -8,7 +8,7 @@ const defaultTailWidth = 6;
 const defaultOffset = 6;
 const getTailHeight = (width) => width * .866
 
-export default class Tooltip extends Component {
+export class Tooltip extends Component {
   state = {
     width: 0,
     height: 0,
