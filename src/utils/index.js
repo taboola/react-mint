@@ -1,1 +1,1 @@
-export { shallowEqual } from './shallowEqual';
+export { shallowEqual, shallowEqualForeignProps } from './shallowEqual';

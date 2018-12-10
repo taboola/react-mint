@@ -1,14 +1,47 @@
 import React, { Component, createRef } from 'react';
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom'
-import { shallowEqual } from '../utils'
+import { shallowEqualForeignProps } from '../utils'
 import Memoize from 'memoize-one'
 
 const defaultColor = '#282828';
 const defaultTailWidth = 6;
 const defaultOffset = 6;
+const getDefaultTransitionStyle = (entering, duration) => ({
+  opacity: entering ? 1 : 0,
+  transition: `opacity ${duration}ms ease-out`
+})
 const getTailHeight = (width) => width * .866
 
+export const tooltipPropTypes = {
+  position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
+  color: PropTypes.string,
+  boxStyle: PropTypes.object,
+  tailStyle: PropTypes.object,
+  getTransitionStyle: PropTypes.func,
+  tailWidth: PropTypes.number,
+  offset: PropTypes.number,
+  portalId: PropTypes.string,
+  impure: PropTypes.bool,
+  inline: PropTypes.bool,
+}
+
 export class Tooltip extends Component {
+  static propTypes = {
+    ...tooltipPropTypes,
+    children: PropTypes.node.isRequired,
+    sourceRef: PropTypes.instanceOf(Element),
+    entering: PropTypes.bool,
+    duration: PropTypes.number,
+  }
+  static defaultProps = {
+    position: 'top',
+    color: defaultColor,
+    getTransitionStyle: getDefaultTransitionStyle,
+    tailWidth: defaultTailWidth,
+    offset: defaultOffset,
+    portalId: 'tooltip'
+  }
   state = {
     width: 0,
     height: 0,
@@ -29,7 +62,7 @@ export class Tooltip extends Component {
   scrollParent = null;
   throttling = false;
   unmounted = false;
-  componentDidMount = () => { 
+  componentDidMount = () => {
     this.setPosition();
     this.findScrollParent();
   }
@@ -39,95 +72,78 @@ export class Tooltip extends Component {
       this.scrollParent.onscroll = null;
     }
   }
-  componentDidUpdate = (prevProps, prevState) => {
+  componentDidUpdate = (prevProps) => {
     const {
-      children: prevChildren,
-      elementId: prevElementId,
-      impure: prevImpure,
-      inline: prevInline,
-      position: prevPosition,
-      tailWidth: prevTailWidth,
-      offset: prevOffset,
-      entering: prevEntering,
-      duration: prevDuration,
-      getTransitionStyle: prevGetTransitionStyle,
-      ...prevRest
+      sourceRef: prevSourceRef
     } = prevProps
     const {
-      children,
-      elementId,
+      sourceRef,
       impure,
       inline,
       position,
       tailWidth,
       offset,
-      entering,
-      duration,
-      getTransitionStyle,
-      ...rest
     } = this.props
-    if(impure || !shallowEqual(rest, prevRest)) {
-      //console.log('update')
+    if(impure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
       this.setPosition()
     }
     else {
+      if(sourceRef !== prevSourceRef) {
+        this.setSourceRect();
+        this.findScrollParent();
+      }
       this.memoizedSetPosition(
-        inline, 
-        position, 
-        tailWidth, 
+        position,
+        tailWidth,
         offset,
-        this.sourceRect.top, 
-        this.sourceRect.left, 
-        this.sourceRect.width, 
-        this.sourceRect.height, 
-        this.tooltipRect.width, 
+        inline,
+        this.sourceRect.top,
+        this.sourceRect.left,
+        this.sourceRect.width,
+        this.sourceRect.height,
+        this.tooltipRect.width,
         this.tooltipRect.height,
       )
     }
   }
 
   setPosition = () => {
-    const { sourceRef, inline, position, tailWidth, offset } = this.props
-    //const { tooltipWidth, tooltipHeight } = this.state
-    this.sourceRect = sourceRef.getBoundingClientRect();
+    const { inline, position, tailWidth, offset } = this.props
     const {
       top: sourceTop,
       left: sourceLeft,
       width: sourceWidth,
       height: sourceHeight,
-    } = this.sourceRect;
-    this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
+    } = this.setSourceRect();
     const {
       width: tooltipWidth,
       height: tooltipHeight,
-    } = this.tooltipRect;
-    //console.log('set')
+    } = this.setTooltipRect();
     this.memoizedSetPosition(
-      inline, 
-      position, 
-      tailWidth, 
+      position,
+      tailWidth,
       offset,
-      sourceTop, 
-      sourceLeft, 
-      sourceWidth, 
-      sourceHeight, 
-      tooltipWidth, 
+      inline,
+      sourceTop,
+      sourceLeft,
+      sourceWidth,
+      sourceHeight,
+      tooltipWidth,
       tooltipHeight,
     )
   }
   memoizedSetPosition = Memoize((
-    inline, 
-    position, 
-    tailWidth=defaultTailWidth, 
-    offset=defaultOffset,
-    sourceTop, 
-    sourceLeft, 
-    sourceWidth, 
-    sourceHeight, 
-    tooltipWidth, 
-    tooltipHeight, 
+    position,
+    tailWidth,
+    offset,
+    inline,
+    sourceTop,
+    sourceLeft,
+    sourceWidth,
+    sourceHeight,
+    tooltipWidth,
+    tooltipHeight,
   ) => {
-    //console.log('mem')
     let left = 0;
     let top = 0;
     if(!inline) {
@@ -137,7 +153,7 @@ export class Tooltip extends Component {
     const tailHeight = getTailHeight(tailWidth)
     const totalOffset = tailHeight + offset;
     switch(position) {
-      case 'left': 
+      case 'left':
         top += ((sourceHeight - tooltipHeight) / 2);
         left -= (tooltipWidth + totalOffset);
         break;
@@ -154,7 +170,7 @@ export class Tooltip extends Component {
         left += ((sourceWidth - tooltipWidth) / 2)
         break;
     }
-    
+
     this.setState({
       width: tooltipWidth,
       height: tooltipHeight,
@@ -162,14 +178,21 @@ export class Tooltip extends Component {
       left,
     })
   })
+  setSourceRect = () => {
+    this.sourceRect = this.props.sourceRef.getBoundingClientRect();
+    return this.sourceRect;
+  }
+  setTooltipRect = () => {
+    this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
+    return this.tooltipRect;
+  }
   findScrollParent = () => {
-    const { sourceRef } = this.props
-    let el = sourceRef;
+    let el = this.props.sourceRef;
     while (el && el.parentNode) {
       el = el.parentNode;
       if(
         el.style && (
-          el.style['overflow-x'] === 'scroll' 
+          el.style['overflow-x'] === 'scroll'
           || el.style['overflow-y'] === 'scroll'
         )
       ) {
@@ -192,28 +215,26 @@ export class Tooltip extends Component {
 
   getTooltipStyle = Memoize((top, left) => {
     return {
-      position: 'absolute', 
-      pointerEvents: 'none', 
+      position: 'absolute',
+      pointerEvents: 'none',
       top,
       left,
     }
   })
-  getDefaultTransitionStyle = (entering, duration) => ({
-    opacity: entering ? 1 : 0,
-    transition: `opacity ${duration}ms ease-out`
-  })
- 
-  getBoxStyle = Memoize((color=defaultColor) => ({
+
+  getBoxStyle = Memoize((color, boxStyle) => ({
     backgroundColor: color,
     color: '#fff',
     borderRadius: 4,
     padding: 8,
+    ...boxStyle
   }))
-  getTailStyle = Memoize((color=defaultColor, position, tailWidth=defaultTailWidth, width, height) => {
+  getTailStyle = Memoize((color, position, tailWidth, width, height, tailStyle) => {
     const style = {
       width: 0,
       height: 0,
       position: 'absolute',
+      ...tailStyle
     }
     const legBorder = `${tailWidth}px solid transparent`;
     const baseBorder = `${tailWidth}px solid ${color}`;
@@ -258,18 +279,17 @@ export class Tooltip extends Component {
     }
   })
   render = () => {
-    const { 
-      children, 
-      elementId='tooltip', 
+    const {
+      children,
+      portalId,
       inline,
-      sourceRef,
 
       color,
       position,
       tailWidth,
       entering,
       duration,
-      getTransitionStyle=this.getDefaultTransitionStyle,
+      getTransitionStyle,
     } = this.props
 
     const {
@@ -288,6 +308,6 @@ export class Tooltip extends Component {
         </div>
       </div>
     )
-    return inline ? tooltip : createPortal(tooltip, document.getElementById(elementId))
+    return inline ? tooltip : createPortal(tooltip, document.getElementById(portalId))
   }
 }
