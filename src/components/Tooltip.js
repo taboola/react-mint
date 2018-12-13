@@ -1,6 +1,7 @@
 import React, { Component, createRef } from 'react';
 import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom'
+
 import { shallowEqualForeignProps, defaultPortalId } from '../utils'
 import Memoize from 'memoize-one'
 
@@ -16,6 +17,7 @@ const getTailHeight = (width) => width * .866
 export const tooltipPropTypes = {
   position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
   color: PropTypes.string,
+  style: PropTypes.object,
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
   getTransitionStyle: PropTypes.func,
@@ -227,11 +229,12 @@ export class Tooltip extends Component {
     }
   })
 
-  getBoxStyle = Memoize((color, boxStyle) => ({
+  getBoxStyle = Memoize((color, style, boxStyle) => ({
     backgroundColor: color,
     color: '#fff',
     borderRadius: 4,
     padding: 8,
+    ...style,
     ...boxStyle
   }))
   getTailStyle = Memoize((color, position, tailWidth, width, height, tailStyle) => {
@@ -302,6 +305,7 @@ export class Tooltip extends Component {
       entering,
       duration,
       getTransitionStyle,
+      style,
       boxStyle,
       tailStyle,
     } = this.props
@@ -319,7 +323,7 @@ export class Tooltip extends Component {
     const tooltip = (
       <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
         <div style={getTransitionStyle(entering, duration)}>
-          <div style={this.getBoxStyle(color, boxStyle)}>
+          <div style={this.getBoxStyle(color, style, boxStyle)}>
             {children}
           </div>
           <div style={this.getTailStyle(color, position, tailWidth, width, height, tailStyle)}/>

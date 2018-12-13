@@ -3,8 +3,14 @@ import { Tooltip, TooltipPortal } from '../../src'
 import { TestOne } from './TestOne';
 
 const themes = {
-  default: {color: 'red'},
-  night: {color: 'AliceBlue', boxStyle: {color: 'black'}}
+  default: {color: 'red', delay: 300, duration: 2000},
+  night: {
+    color: 'AliceBlue', 
+    style: {
+      color: 'black',
+      boxShadow: '3px 3px 8px 0 rgba(0,0,0,0.25)',
+    },
+  }
 }
 
 export class TestTwo extends Component {
@@ -22,7 +28,7 @@ export class TestTwo extends Component {
             style={{backgroundColor: 'green', position: 'absolute', zIndex: 2, left: 20, width: 50, height: 50}}
             onClick={() => this.setState(({clicked}) => ({clicked: !clicked}))}
           >
-            <Tooltip position={'right'} showing={true}>
+            <Tooltip position={'right'} style={{color: 'orange'}}>
               {'hewo'}
             </Tooltip>
           </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { TooltipProvider } from './TooltipProvider'
-import { TooltipContext } from './tooltipContext';
+import { TooltipContext } from './TooltipContext';
 
 export const TooltipProviderWrapper = (props) => (
   <TooltipContext.Consumer>

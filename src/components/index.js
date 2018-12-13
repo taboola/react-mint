@@ -1,2 +1,2 @@
-export { TooltipConsumer } from './TooltipConsumer';
-export { TooltipProviderWrapper as TooltipProvider } from './TooltipProviderWrapper';
+export { TooltipSourceWrapper as Tooltip } from './TooltipSourceWrapper';
+export { TooltipProviderWrapper as TooltipPortal } from './TooltipProviderWrapper';

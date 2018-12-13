@@ -9,16 +9,17 @@ export class TestOne extends Component {
   render = () => {
     return (
       <TooltipPortal
-        portal={this.state.clicked}
+        //portal={this.state.clicked}
         // themes={{
         //   default: {color: 'red'},
-        //   night: {color: 'AliceBlue', boxStyle: {color: 'black'}}
+        //   night: {color: 'AliceBlue', style: {color: 'green'}}
         // }}
         // defaultTheme={this.state.clicked ? 'night' : 'default'} 
       >
         <div
           style={{
             marginLeft: 200,
+            marginTop: 200,
             display: 'inline-block',
             backgroundColor: 'purple',
             width: '100px'
@@ -28,7 +29,7 @@ export class TestOne extends Component {
           //   clicked: !clicked
           // }))}
         >
-          <Tooltip position={'bottom'} width={this.state.width} showing={true}>
+          <Tooltip position={'top'} width={this.state.width} showing={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
               {'test 2'}

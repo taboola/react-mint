@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import uuid from 'uuid/v4';
+
 import { defaultPortalId, shallowEqual } from '../utils'
-import { TooltipContext, defaultContextValue } from './tooltipContext';
+import { TooltipContext, defaultContextValue } from './TooltipContext';
 
 export class TooltipProvider extends Component {
   static propTypes = {

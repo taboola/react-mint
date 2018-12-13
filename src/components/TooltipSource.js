@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+
 import { Tooltip, tooltipPropTypes } from './Tooltip'
 import { Transition } from './Transition';
-import { TooltipContext } from './tooltipContext';
-import { defaultPortalId } from '../utils';
 
-export class TooltipConsumer extends Component {
+export class TooltipSource extends Component {
   static propTypes = {
     ...tooltipPropTypes,
     children: PropTypes.node.isRequired,
@@ -28,11 +27,13 @@ export class TooltipConsumer extends Component {
     sourceRef: null
   }
   timer = null;
+  mounted = true;
 
+  protectedSetState = (newState) => this.mounted && this.setState(newState)
   setSourceRef = (ref) => {
     if(!ref) return this.state.sourceRef;
     this.setHoverable(ref);
-    this.setState({sourceRef: ref})
+    this.protectedSetState({sourceRef: ref})
     return ref;
   }
   setHoverable = (ref) => {
@@ -65,18 +66,21 @@ export class TooltipConsumer extends Component {
       this.setHovered();
     }
   }
-  setHovered = () => this.setState({hovered: true});
+  setHovered = () => this.mounted && this.protectedSetState({hovered: true});
   onMouseOut = () => {
     this.stopTimer();
-    this.setState({hovered: false});
+    this.mounted && this.protectedSetState({hovered: false});
   }
   stopTimer = () => {
     clearInterval(this.timer);
     this.timer = null;
   }
   setRef = (ref) => ref && !this.props.sourceRef && this.setSourceRef(ref.parentNode);
-  componentDidMount = () => this.setSourceRef(this.props.sourceRef);
+  componentDidMount = () => {
+    this.setSourceRef(this.props.sourceRef);
+  }
   componentWillUnmount = () => {
+    this.mounted = false;
     this.stopTimer();
     this.clearHoverable(this.state.ref);
   }
@@ -97,7 +101,6 @@ export class TooltipConsumer extends Component {
       sourceRef: _,
       duration,
       delay,
-      theme,
       ...rest
     } = this.props
     const {
@@ -105,29 +108,20 @@ export class TooltipConsumer extends Component {
       sourceRef
     } = this.state
     return (
-      <TooltipContext.Consumer>
-        {({themes, defaultTheme, portalId}) => {
-          let themeProps = themes && (themes[theme] || themes[defaultTheme]);
-          return (
-            <div className={'tooltip-source'} ref={this.setRef}>
-              <Transition enter={sourceRef && (hovered || showing)} timeout={duration}>
-                {(entering) => (
-                  <Tooltip
-                    sourceRef={sourceRef}
-                    entering={entering}
-                    duration={duration}
-                    portalId={portalId || defaultPortalId}
-                    {...themeProps}
-                    {...rest}
-                  >
-                    {children}
-                  </Tooltip>
-                )}
-              </Transition>
-            </div>
-          )
-        }}
-      </TooltipContext.Consumer>
+      <div className={'tooltip-source'} ref={this.setRef}>
+        <Transition enter={sourceRef && (hovered || showing)} timeout={duration}>
+          {(entering) => (
+            <Tooltip
+              sourceRef={sourceRef}
+              entering={entering}
+              duration={duration}
+              {...rest}
+            >
+              {children}
+            </Tooltip>
+          )}
+        </Transition>
+      </div>
     )
   }
 }
