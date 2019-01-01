@@ -5,13 +5,20 @@ import { createPortal } from 'react-dom'
 import { shallowEqualForeignProps, defaultPortalId } from '../utils'
 import Memoize from 'memoize-one'
 
-const defaultColor = '#282828';
-const defaultTailWidth = 6;
+const defaultTailHeight = 6;
 const defaultOffset = 6;
-const getDefaultTransitionStyle = (entering, duration) => ({
+const getDefaultTransitionStyle = (entering) => ({
   opacity: entering ? 1 : 0,
-  transition: `opacity ${duration}ms ease-out`
+  transitionProperty: 'opacity'
 })
+const defaultStyle = {
+  background: '#282828',
+}
+const defaultBoxStyle = {
+  borderRadius: 4,
+  padding: 8,
+  color: '#fff',
+}
 const getTailHeight = (width) => width * .866
 
 export const tooltipPropTypes = {
@@ -21,7 +28,7 @@ export const tooltipPropTypes = {
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
   getTransitionStyle: PropTypes.func,
-  tailWidth: PropTypes.number,
+  tailHeight: PropTypes.number,
   offset: PropTypes.number,
   portalId: PropTypes.string,
   impure: PropTypes.bool,
@@ -38,9 +45,10 @@ export class Tooltip extends Component {
   }
   static defaultProps = {
     position: 'top',
-    color: defaultColor,
     getTransitionStyle: getDefaultTransitionStyle,
-    tailWidth: defaultTailWidth,
+    style: defaultStyle,
+    boxStyle: defaultBoxStyle,
+    tailHeight: defaultTailHeight,
     offset: defaultOffset,
     portalId: defaultPortalId
   }
@@ -83,7 +91,7 @@ export class Tooltip extends Component {
       impure,
       inline,
       position,
-      tailWidth,
+      tailHeight,
       offset,
     } = this.props
     if(impure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
@@ -96,7 +104,7 @@ export class Tooltip extends Component {
       }
       this.memoizedSetPosition(
         position,
-        tailWidth,
+        tailHeight,
         offset,
         inline,
         this.sourceRect.top,
@@ -110,7 +118,7 @@ export class Tooltip extends Component {
   }
 
   setPosition = () => {
-    const { inline, position, tailWidth, offset } = this.props
+    const { inline, position, tailHeight, offset } = this.props
     const {
       top: sourceTop,
       left: sourceLeft,
@@ -123,7 +131,7 @@ export class Tooltip extends Component {
     } = this.setTooltipRect();
     this.memoizedSetPosition(
       position,
-      tailWidth,
+      tailHeight,
       offset,
       inline,
       sourceTop,
@@ -136,7 +144,7 @@ export class Tooltip extends Component {
   }
   memoizedSetPosition = Memoize((
     position,
-    tailWidth,
+    tailHeight,
     offset,
     inline,
     sourceTop,
@@ -152,7 +160,6 @@ export class Tooltip extends Component {
       left = sourceLeft
       top = sourceTop
     }
-    const tailHeight = getTailHeight(tailWidth)
     const totalOffset = tailHeight + offset;
     switch(position) {
       case 'left':
@@ -174,8 +181,6 @@ export class Tooltip extends Component {
     }
 
     this.setState({
-      width: tooltipWidth,
-      height: tooltipHeight,
       top,
       left,
     })
@@ -219,6 +224,64 @@ export class Tooltip extends Component {
       this.throttling = true;
     }
   }
+  getStyles = Memoize((style, boxStyle, tailStyle, getTransitionStyle, entering, duration) => {
+    const {
+      transition,
+      transitionProperty,
+      transitionDuration=`${duration}ms`,
+      transitionTimingFunction='ease-out',
+      transitionDelay,
+
+      transform,
+      padding,
+      opacity,
+
+      ...rest
+    } = {
+      ...style,
+      ...(getTransitionStyle && getTransitionStyle(entering, duration))
+    }
+    let transitionStyle = null;
+    if(transition) {
+      transitionStyle = { transition }
+    }
+    else if(transitionProperty) {
+      transitionStyle = {
+        transitionProperty,
+        transitionDuration,
+        transitionTimingFunction,
+        transitionDelay,
+      }
+    }
+    const mergedBoxStyle = {
+      ...boxStyle,
+      ...rest,
+    }
+    const mergedMaskStyle = Object.entries(mergedBoxStyle).reduce((style, [key, value]) => {
+      if((!/^border/.test(key) && !/^padding/.test(key) && key !== 'boxShadow') || key === 'borderRadius') {
+        style[key] = value;
+      }
+      return style;
+    }, {})
+    return {
+      boxStyle: {
+        transform,
+        padding,
+        opacity,
+        ...mergedBoxStyle,
+        ...transitionStyle,
+      },
+      maskStyle: {
+        ...mergedMaskStyle,
+        ...transitionStyle,
+      },
+      tailStyle: {
+        ...tailStyle,
+        ...rest,
+        ...transitionStyle,
+      }
+    }
+  })
 
   getTooltipStyle = Memoize((top, left) => {
     return {
@@ -229,59 +292,62 @@ export class Tooltip extends Component {
     }
   })
 
-  getBoxStyle = Memoize((color, style, boxStyle) => ({
-    backgroundColor: color,
-    color: '#fff',
-    borderRadius: 4,
-    padding: 8,
-    ...style,
-    ...boxStyle
-  }))
-  getTailStyle = Memoize((color, position, tailWidth, width, height, tailStyle) => {
-    const style = {
-      width: 0,
-      height: 0,
+  getMaskStyle = Memoize((maskStyle) => {
+    return {
+      width: '100%',
+      height: '100%',
       position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      margin: 'auto',
+      ...maskStyle
+    }
+  })
+
+  getTailStyle = Memoize((position, tailHeight, tailStyle) => {
+    const vertical = !(position === 'right' || position === 'left')
+    const start = !(position === 'bottom' || position === 'right')
+    const style = {
+      width: tailHeight * 1.41,
+      height: tailHeight * 1.41,
+      position: 'absolute',
+      margin: 'auto',
+      zIndex: -1,
       ...tailStyle
     }
-    const legBorder = `${tailWidth}px solid transparent`;
-    const baseBorder = `${tailWidth}px solid ${color}`;
-    const tailHeight = getTailHeight(tailWidth)
     switch(position) {
       case 'right':
         return {
-          borderTop: legBorder,
-          borderBottom: legBorder,
-          borderRight: baseBorder,
-          top: height / 2 - tailWidth,
-          left: -tailHeight,
+          top: 0,
+          bottom: 0,
+          left: 0,
+          transform: 'translateX(-50%) rotate(45deg)',
           ...style,
         }
       case 'bottom':
         return {
-          borderRight: legBorder,
-          borderLeft: legBorder,
-          borderBottom: baseBorder,
-          top: -tailHeight,
-          left: width / 2 - tailWidth,
+          top: 0,
+          right: 0,
+          left: 0,
+          transform: 'translateY(-50%) rotate(45deg)',
           ...style,
         }
       case 'left':
         return {
-          borderTop: legBorder,
-          borderBottom: legBorder,
-          borderLeft: baseBorder,
-          top: height / 2 - tailWidth,
-          left: width,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          transform: 'translateX(50%) rotate(45deg)',
           ...style,
         }
       default:
         return {
-          borderRight: legBorder,
-          borderLeft: legBorder,
-          borderTop: baseBorder,
-          top: height,
-          left: width / 2 - tailWidth,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          transform: 'translateY(50%) rotate(45deg)',
           ...style,
         }
     }
@@ -299,20 +365,17 @@ export class Tooltip extends Component {
       portalId,
       inline,
 
-      color,
       position,
-      tailWidth,
+      tailHeight,
       entering,
       duration,
       getTransitionStyle,
       style,
-      boxStyle,
-      tailStyle,
+      boxStyle: propBoxStyle,
+      tailStyle: propTailStyle,
     } = this.props
 
     const {
-      width,
-      height,
       top,
       left
     } = this.state
@@ -320,13 +383,20 @@ export class Tooltip extends Component {
     if(!element) {
       return null;
     }
+    const {
+      boxStyle,
+      maskStyle,
+      tailStyle,
+    } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration)
     const tooltip = (
       <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
-        <div style={getTransitionStyle(entering, duration)}>
-          <div style={this.getBoxStyle(color, style, boxStyle)}>
+        <div style={boxStyle}>
+          <div style={{position: 'relative', zIndex: 1}}>
             {children}
           </div>
-          <div style={this.getTailStyle(color, position, tailWidth, width, height, tailStyle)}/>
+          <div style={this.getMaskStyle(maskStyle)}>
+            <div style={this.getTailStyle(position, tailHeight, tailStyle)}/>
+          </div>
         </div>
       </div>
     )

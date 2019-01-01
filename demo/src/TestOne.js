@@ -14,7 +14,7 @@ export class TestOne extends Component {
         //   default: {color: 'red'},
         //   night: {color: 'AliceBlue', style: {color: 'green'}}
         // }}
-        // defaultTheme={this.state.clicked ? 'night' : 'default'} 
+        // defaultTheme={this.state.clicked ? 'night' : 'default'}
       >
         <div
           style={{
@@ -29,10 +29,24 @@ export class TestOne extends Component {
           //   clicked: !clicked
           // }))}
         >
-          <Tooltip position={'top'} width={this.state.width} showing={true}>
+          <Tooltip position={'top'} test={this.state.width} showing={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
-              {'test 2'}
+            </div>
+          </Tooltip>
+          <Tooltip position={'right'} test={this.state.width} showing={true}>
+            <div style={{width: this.state.width}}>
+              {'test tip'}
+            </div>
+          </Tooltip>
+          <Tooltip position={'left'} test={this.state.width} showing={true}>
+            <div style={{width: this.state.width}}>
+              {'test tip'}
+            </div>
+          </Tooltip>
+          <Tooltip position={'bottom'} test={this.state.width} showing={true}>
+            <div style={{width: this.state.width}}>
+              {'test tip'}
             </div>
           </Tooltip>
           {'test'}
