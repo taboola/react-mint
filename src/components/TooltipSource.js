@@ -29,11 +29,10 @@ export class TooltipSource extends Component {
   timer = null;
   mounted = true;
 
-  protectedSetState = (newState) => this.mounted && this.setState(newState)
   setSourceRef = (ref) => {
     if(!ref) return this.state.sourceRef;
     this.setHoverable(ref);
-    this.protectedSetState({sourceRef: ref})
+    this.setState({sourceRef: ref})
     return ref;
   }
   setHoverable = (ref) => {
@@ -66,23 +65,20 @@ export class TooltipSource extends Component {
       this.setHovered();
     }
   }
-  setHovered = () => this.mounted && this.protectedSetState({hovered: true});
+  setHovered = () => this.setState({hovered: true});
   onMouseOut = () => {
     this.stopTimer();
-    this.mounted && this.protectedSetState({hovered: false});
+    this.setState({hovered: false});
   }
   stopTimer = () => {
-    clearInterval(this.timer);
+    clearTimeout(this.timer);
     this.timer = null;
   }
   setRef = (ref) => ref && !this.props.sourceRef && this.setSourceRef(ref.parentNode);
-  componentDidMount = () => {
-    this.setSourceRef(this.props.sourceRef);
-  }
+  componentDidMount = () => this.setSourceRef(this.props.sourceRef);
   componentWillUnmount = () => {
-    this.mounted = false;
     this.stopTimer();
-    this.clearHoverable(this.state.ref);
+    this.clearHoverable(this.state.sourceRef);
   }
   componentDidUpdate = (prevProps, { sourceRef: curSourceRef }) => {
     const { sourceRef, hoverable, clickable } = this.props;

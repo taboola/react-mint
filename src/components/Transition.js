@@ -14,7 +14,7 @@ export class Transition extends Component {
     this.prevTimeout = timeout;
     enter && this.enter()
   }
-  componentWillUnmount = this.stopTimer
+  componentWillUnmount = () => this.stopTimer()
 
   componentDidUpdate = ({ enter : prevEnter }) => {
     const { enter } = this.props
@@ -30,7 +30,6 @@ export class Transition extends Component {
 
   startTimer = (timer) => {
     const { timeout } = this.props
-    clearInterval(this.timer);
     let delta = this.prevTimeout - (Date.now() - this.timestamp)
     if(delta < 0) {
       delta = 0;
@@ -38,10 +37,11 @@ export class Transition extends Component {
     let newTimeout = timeout - delta;
     this.prevTimeout = newTimeout !== timeout ? newTimeout : timeout
     this.timestamp = Date.now();
+    clearTimeout(this.timer);
     this.timer = setTimeout(timer, newTimeout)
   }
   stopTimer = () => {
-    clearInterval(this.timer);
+    clearTimeout(this.timer);
     this.timer = null;
   }
 
