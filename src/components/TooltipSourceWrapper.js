@@ -9,12 +9,12 @@ export const TooltipSourceWrapper = ({ theme, style, boxStyle, tailStyle, ...res
     {({themes, defaultTheme, portalId}) => {
       let themeProps = themes && (themes[theme] || themes[defaultTheme]);
       if(themeProps) {
-        style = {...themeProps.style, ...style}
-        boxStyle = {...themeProps.boxStyle, ...boxStyle}
-        tailStyle = {...themeProps.tailStyle, ...tailStyle}
+        style = (themeProps.style || style) && {...themeProps.style, ...style}
+        boxStyle = (themeProps.boxStyle || boxStyle) && {...themeProps.boxStyle, ...boxStyle}
+        tailStyle = (themeProps.tailStyle || tailStyle) && {...themeProps.tailStyle, ...tailStyle}
       }
       return (
-        <TooltipSource 
+        <TooltipSource
           portalId={portalId || defaultPortalId}
           {...themeProps}
           {...rest}
