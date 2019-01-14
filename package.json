@@ -1,7 +1,7 @@
 {
   "name": "react-mint",
-  "version": "0.9.12",
-  "description": "Fresh and clean React tooltips utilizing native React sugar like portals and context",
+  "version": "0.9.14",
+  "description": "Clean React tooltips utilizing built-in React sugar like portals and context",
   "main": "./dist/index.js",
   "scripts": {
     "start": "webpack-dev-server --content-base demo/public/ --config webpack.dev.js --display-error-details",
@@ -14,7 +14,8 @@
     "tooltip"
   ],
   "author": "tunamelt",
-  "license": "ISC",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/taboola/react-mint",
   "peerDependencies": {
     "react": ">= 16.3 < 17",
     "react-dom": "16.x"
