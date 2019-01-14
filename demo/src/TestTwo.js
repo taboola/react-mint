@@ -3,7 +3,7 @@ import { Tooltip, TooltipPortal } from '../../src'
 import { TestOne } from './TestOne';
 
 const themes = {
-  default: {color: 'red', delay: 300, duration: 2000},
+  default: { delay: 300, duration: 2000},
   night: {
     duration: 2000,
     getTransitionStyle: (entering, duration) => ({
@@ -14,10 +14,13 @@ const themes = {
     }),
     boxStyle: {
       borderRadius: 4,
+      boxShadow: '3px 3px 8px 0 rgba(0,0,0,0.25)',
+    },
+    tailStyle: {
+      boxShadow: '3px 0px 8px 0 rgba(0,0,0,0.25)',
     },
     style: {
       color: 'black',
-      boxShadow: '3px 3px 8px 0 rgba(0,0,0,0.25)',
       border: 'solid mediumpurple 2px',
       padding: 8,
     },

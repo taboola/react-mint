@@ -1,8 +1,0 @@
-demo/
-node_modules/
-src/
-.babelrc
-.gitignore
-.npmignore
-webpack.dev.js
-webpack.prod.js

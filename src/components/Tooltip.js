@@ -23,7 +23,6 @@ const getTailHeight = (width) => width * .866
 
 export const tooltipPropTypes = {
   position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
-  color: PropTypes.string,
   style: PropTypes.object,
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
@@ -31,7 +30,7 @@ export const tooltipPropTypes = {
   tailHeight: PropTypes.number,
   offset: PropTypes.number,
   portalId: PropTypes.string,
-  impure: PropTypes.bool,
+  pure: PropTypes.bool,
   inline: PropTypes.bool,
 }
 
@@ -50,7 +49,9 @@ export class Tooltip extends Component {
     boxStyle: defaultBoxStyle,
     tailHeight: defaultTailHeight,
     offset: defaultOffset,
-    portalId: defaultPortalId
+    portalId: defaultPortalId,
+    pure: true,
+    inline: false,
   }
   state = {
     width: 0,
@@ -88,13 +89,13 @@ export class Tooltip extends Component {
     } = prevProps
     const {
       sourceRef,
-      impure,
+      pure,
       inline,
       position,
       tailHeight,
       offset,
     } = this.props
-    if(impure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
+    if(!pure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
       this.setPosition()
     }
     else {
@@ -224,7 +225,7 @@ export class Tooltip extends Component {
       this.throttling = true;
     }
   }
-  getStyles = Memoize((style, boxStyle, tailStyle, getTransitionStyle, entering, duration) => {
+  getStyles = Memoize((style, boxStyle, tailStyle, getTransitionStyle, entering, duration, position) => {
     const {
       transition,
       transitionProperty,
@@ -239,7 +240,7 @@ export class Tooltip extends Component {
       ...rest
     } = {
       ...style,
-      ...(getTransitionStyle && getTransitionStyle(entering, duration))
+      ...(getTransitionStyle && getTransitionStyle(entering, duration, position))
     }
     let transitionStyle = null;
     if(transition) {
@@ -297,6 +298,7 @@ export class Tooltip extends Component {
       width: '100%',
       height: '100%',
       position: 'absolute',
+      zIndex: 1,
       left: 0,
       right: 0,
       top: 0,
@@ -313,8 +315,8 @@ export class Tooltip extends Component {
       width: tailHeight * 1.41,
       height: tailHeight * 1.41,
       position: 'absolute',
+      zIndex: 0,
       margin: 'auto',
-      zIndex: -1,
       ...tailStyle
     }
     switch(position) {
@@ -387,16 +389,15 @@ export class Tooltip extends Component {
       boxStyle,
       maskStyle,
       tailStyle,
-    } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration)
+    } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration, position)
     const tooltip = (
       <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
         <div style={boxStyle}>
-          <div style={{position: 'relative', zIndex: 1}}>
+          <div style={{position: 'relative', zIndex: 2}}>
             {children}
           </div>
-          <div style={this.getMaskStyle(maskStyle)}>
-            <div style={this.getTailStyle(position, tailHeight, tailStyle)}/>
-          </div>
+          <div style={this.getMaskStyle(maskStyle)}/>
+          <div style={this.getTailStyle(position, tailHeight, tailStyle)}/>
         </div>
       </div>
     )

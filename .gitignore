@@ -1,2 +1,15 @@
 dist/
 node_modules/
+.DS_STORE
+*~
+*.pyc
+.grunt
+.module-cache
+chrome-user-data
+*.sublime-project
+*.sublime-workspace
+.idea
+*.iml
+.vscode
+*.swp
+*.swo
