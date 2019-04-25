@@ -43,7 +43,7 @@ export class TestTwo extends Component {
             onClick={() => this.setState(({clicked}) => ({clicked: !clicked}))}
           >
             <div style={{position: 'relative', zIndex: 4, backgroundColor: 'red', width: 20, height: 20}}> stuff </div>
-            <Tooltip position={'right'}>
+            <Tooltip position={'right'} interactive={true} delay={500}>
               {'hewo'}
             </Tooltip>
           </div>

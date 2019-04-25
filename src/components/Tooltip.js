@@ -32,6 +32,7 @@ export const tooltipPropTypes = {
   portalId: PropTypes.string,
   pure: PropTypes.bool,
   inline: PropTypes.bool,
+  interactive: PropTypes.bool,
 }
 
 export class Tooltip extends Component {
@@ -52,6 +53,7 @@ export class Tooltip extends Component {
     portalId: defaultPortalId,
     pure: true,
     inline: false,
+    interactive: false,
   }
   state = {
     width: 0,
@@ -287,9 +289,45 @@ export class Tooltip extends Component {
   getTooltipStyle = Memoize((top, left) => {
     return {
       position: 'absolute',
-      pointerEvents: 'none',
       top,
       left,
+    }
+  })
+
+  getInteractiveStyle = Memoize((position, tailHeight, offset) => {
+    const totalOffset = tailHeight + offset;
+    let positionStyle = null;
+    switch(position) {
+      case 'left':
+        positionStyle = {
+          right: -totalOffset,
+          width: totalOffset,
+        }
+        break;
+      case 'bottom':
+      positionStyle = {
+        top: -totalOffset,
+        height: totalOffset,
+      }
+        break;
+      case 'right':
+        positionStyle = {
+          left: -totalOffset,
+          width: totalOffset,
+        }
+        break;
+      default:
+        positionStyle = {
+          bottom: -totalOffset,
+          height: totalOffset,
+        }
+        break;
+    }
+    return {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      ...positionStyle,
     }
   })
 
@@ -369,8 +407,10 @@ export class Tooltip extends Component {
 
       position,
       tailHeight,
+      offset,
       entering,
       duration,
+      interactive,
       getTransitionStyle,
       style,
       boxStyle: propBoxStyle,
@@ -392,6 +432,7 @@ export class Tooltip extends Component {
     } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration, position)
     const tooltip = (
       <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
+        {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset)}/>}
         <div style={boxStyle}>
           <div style={{position: 'relative', zIndex: 2}}>
             {children}

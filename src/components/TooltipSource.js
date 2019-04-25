@@ -24,10 +24,11 @@ export class TooltipSource extends Component {
   }
   state = {
     hovered: false,
+    triggered: false,
     sourceRef: null
   }
   timer = null;
-  mounted = true;
+  animationFrame = null
 
   setSourceRef = (ref) => {
     if(!ref) return this.state.sourceRef;
@@ -58,18 +59,22 @@ export class TooltipSource extends Component {
   onMouseClick = () => this.state.hovered ? this.onMouseOut() : this.onMouseOver();
   onMouseOver = () => {
     const { delay } = this.props;
-    if(delay) {
+    if(delay && !this.state.triggered) {
       this.timer = setTimeout(this.setHovered, delay)
     }
     else {
       this.setHovered();
     }
   }
-  setHovered = () => this.setState({hovered: true});
+  setHovered = () => this.setState({hovered: true, triggered: true});
   onMouseOut = () => {
     this.stopTimer();
     this.setState({hovered: false});
+    if(this.props.interactive) {
+      this.animationFrame = window.requestAnimationFrame(this.checkHovered)
+    }
   }
+  checkHovered = () => !this.state.hovered && this.setState({triggered: false})
   stopTimer = () => {
     clearTimeout(this.timer);
     this.timer = null;
@@ -79,6 +84,7 @@ export class TooltipSource extends Component {
   componentWillUnmount = () => {
     this.stopTimer();
     this.clearHoverable(this.state.sourceRef);
+    window.cancelAnimationFrame(this.animationFrame)
   }
   componentDidUpdate = (prevProps, { sourceRef: curSourceRef }) => {
     const { sourceRef, hoverable, clickable } = this.props;
@@ -94,6 +100,7 @@ export class TooltipSource extends Component {
     const {
       children,
       showing,
+      interactive,
       sourceRef: _,
       duration,
       delay,
@@ -104,12 +111,13 @@ export class TooltipSource extends Component {
       sourceRef
     } = this.state
     return (
-      <div className={'tooltip-source'} ref={this.setRef}>
-        <Transition enter={sourceRef && (hovered || showing)} timeout={duration}>
+      <div className={'tooltip-source'} ref={this.setRef} onMouseOver={interactive && this.onMouseOver} onMouseOut={interactive && this.onMouseOut}>
+        <Transition enter={sourceRef && (showing === undefined ? hovered : showing)} timeout={duration}>
           {(entering) => (
             <Tooltip
               sourceRef={sourceRef}
               entering={entering}
+              interactive={interactive}
               duration={duration}
               {...rest}
             >
