@@ -3,9 +3,9 @@ import { Tooltip, TooltipPortal } from '../../src'
 import { TestOne } from './TestOne';
 
 const themes = {
-  default: { delay: 300, duration: 2000},
+  default: { delay: 300, duration: 300},
   night: {
-    duration: 2000,
+    duration: 300,
     getTransitionStyle: (entering, duration) => ({
       transform: `translateY(${entering ? 0 : 20}px) rotate(${entering ? 0 : 360}deg)`,
       backgroundColor: entering ? 'aliceblue' : 'orange',
@@ -43,7 +43,7 @@ export class TestTwo extends Component {
             onClick={() => this.setState(({clicked}) => ({clicked: !clicked}))}
           >
             <div style={{position: 'relative', zIndex: 4, backgroundColor: 'red', width: 20, height: 20}}> stuff </div>
-            <Tooltip position={'right'} interactive={true} delay={500}>
+            <Tooltip position={'right'} interactive={true} >
               {'hewo'}
             </Tooltip>
           </div>

@@ -69,6 +69,10 @@ Controls whether or not clicking the parent is what triggers the mounting/unmoun
 
 Controls whether or not the tooltip is mounted. This is useful for providing custom logic to trigger tooltips instead of the built in functionality. Typically you will want to disable hoverable and clickable when using this feature, although this boolean has priority over both of them.
 
+**interactive** : bool (default: false)
+
+Controls whether or not the tooltip can be interacted with using the mouse. When set to true, moving the mouse over the tooltip will cause it to remain open so that the user can further interact with it (e.g. clicking buttons inside the tooltip)
+
 **tailHeight** : int (default: 6)
 
 The height of the tooltip's tail in pixels

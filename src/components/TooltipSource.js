@@ -58,8 +58,8 @@ export class TooltipSource extends Component {
   }
   onMouseClick = () => this.state.hovered ? this.onMouseOut() : this.onMouseOver();
   onMouseOver = () => {
-    const { delay } = this.props;
-    if(delay && !this.state.triggered) {
+    const { delay, interactive } = this.props;
+    if(delay && (!interactive || !this.state.triggered)) {
       this.timer = setTimeout(this.setHovered, delay)
     }
     else {
@@ -108,10 +108,16 @@ export class TooltipSource extends Component {
     } = this.props
     const {
       hovered,
-      sourceRef
+      sourceRef,
+      triggered,
     } = this.state
     return (
-      <div className={'tooltip-source'} ref={this.setRef} onMouseOver={interactive && this.onMouseOver} onMouseOut={interactive && this.onMouseOut}>
+      <div 
+        className={'tooltip-source'} 
+        ref={this.setRef} 
+        onMouseOver={interactive && triggered && this.onMouseOver} 
+        onMouseOut={interactive && triggered && this.onMouseOut}
+      >
         <Transition enter={sourceRef && (showing === undefined ? hovered : showing)} timeout={duration}>
           {(entering) => (
             <Tooltip
