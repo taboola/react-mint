@@ -286,9 +286,10 @@ export class Tooltip extends Component {
     }
   })
 
-  getTooltipStyle = Memoize((top, left) => {
+  getTooltipStyle = Memoize((top, left, interactive) => {
     return {
       position: 'absolute',
+      pointerEvents: !interactive && 'none',
       top,
       left,
     }
@@ -431,7 +432,7 @@ export class Tooltip extends Component {
       tailStyle,
     } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration, position)
     const tooltip = (
-      <div style={this.getTooltipStyle(top, left)} ref={this.tooltipRef}>
+      <div style={this.getTooltipStyle(top, left, interactive)} ref={this.tooltipRef}>
         {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset)}/>}
         <div style={boxStyle}>
           <div style={{position: 'relative', zIndex: 2}}>

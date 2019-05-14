@@ -115,8 +115,8 @@ export class TooltipSource extends Component {
       <div 
         className={'tooltip-source'} 
         ref={this.setRef} 
-        onMouseOver={interactive && triggered && this.onMouseOver} 
-        onMouseOut={interactive && triggered && this.onMouseOut}
+        onMouseOver={(interactive && triggered) ? this.onMouseOver : undefined} 
+        onMouseOut={(interactive && triggered) ? this.onMouseOut : undefined}
       >
         <Transition enter={sourceRef && (showing === undefined ? hovered : showing)} timeout={duration}>
           {(entering) => (
