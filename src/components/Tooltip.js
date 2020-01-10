@@ -7,6 +7,7 @@ import Memoize from 'memoize-one'
 
 const defaultTailHeight = 6;
 const defaultOffset = 6;
+const defaultOffsetBody = 0;
 const getDefaultTransitionStyle = (entering) => ({
   opacity: entering ? 1 : 0,
   transitionProperty: 'opacity'
@@ -29,6 +30,7 @@ export const tooltipPropTypes = {
   getTransitionStyle: PropTypes.func,
   tailHeight: PropTypes.number,
   offset: PropTypes.number,
+  offsetBody: PropTypes.number,
   portalId: PropTypes.string,
   pure: PropTypes.bool,
   inline: PropTypes.bool,
@@ -50,6 +52,7 @@ export class Tooltip extends Component {
     boxStyle: defaultBoxStyle,
     tailHeight: defaultTailHeight,
     offset: defaultOffset,
+    offsetBody: defaultOffsetBody,
     portalId: defaultPortalId,
     pure: true,
     inline: false,
@@ -96,6 +99,7 @@ export class Tooltip extends Component {
       position,
       tailHeight,
       offset,
+      offsetBody,
     } = this.props
     if(!pure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
       this.setPosition()
@@ -109,6 +113,7 @@ export class Tooltip extends Component {
         position,
         tailHeight,
         offset,
+        offsetBody,
         inline,
         this.sourceRect.top,
         this.sourceRect.left,
@@ -121,7 +126,7 @@ export class Tooltip extends Component {
   }
 
   setPosition = () => {
-    const { inline, position, tailHeight, offset } = this.props
+    const { inline, position, tailHeight, offset, offsetBody } = this.props
     const {
       top: sourceTop,
       left: sourceLeft,
@@ -136,6 +141,7 @@ export class Tooltip extends Component {
       position,
       tailHeight,
       offset,
+      offsetBody,
       inline,
       sourceTop,
       sourceLeft,
@@ -149,6 +155,7 @@ export class Tooltip extends Component {
     position,
     tailHeight,
     offset,
+    offsetBody,
     inline,
     sourceTop,
     sourceLeft,
@@ -166,20 +173,20 @@ export class Tooltip extends Component {
     const totalOffset = tailHeight + offset;
     switch(position) {
       case 'left':
-        top += ((sourceHeight - tooltipHeight) / 2);
+        top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
         left -= (tooltipWidth + totalOffset);
         break;
       case 'bottom':
         top += (sourceHeight + totalOffset)
-        left += ((sourceWidth - tooltipWidth) / 2);
+        left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
         break;
       case 'right':
-        top += ((sourceHeight - tooltipHeight) / 2)
+        top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
         left += (sourceWidth + totalOffset)
         break;
       default:
         top -= (tooltipHeight + totalOffset)
-        left += ((sourceWidth - tooltipWidth) / 2)
+        left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
         break;
     }
 
@@ -347,7 +354,7 @@ export class Tooltip extends Component {
     }
   })
 
-  getTailStyle = Memoize((position, tailHeight, tailStyle) => {
+  getTailStyle = Memoize((position, tailHeight, tailStyle, offsetBody) => {
     const vertical = !(position === 'right' || position === 'left')
     const start = !(position === 'bottom' || position === 'right')
     const style = {
@@ -355,40 +362,39 @@ export class Tooltip extends Component {
       height: tailHeight * 1.41,
       position: 'absolute',
       zIndex: 0,
-      margin: 'auto',
       ...tailStyle
     }
     switch(position) {
       case 'right':
         return {
-          top: 0,
+          top: `calc(50% - ${offsetBody}px)`,
           bottom: 0,
           left: 0,
-          transform: 'translateX(-50%) rotate(45deg)',
+          transform: 'translate(-50%, -50%) rotate(45deg)',
           ...style,
         }
       case 'bottom':
         return {
           top: 0,
           right: 0,
-          left: 0,
-          transform: 'translateY(-50%) rotate(45deg)',
+          left: `calc(50% - ${offsetBody}px)`,
+          transform: 'translate(-50%, -50%) rotate(45deg)',
           ...style,
         }
       case 'left':
         return {
-          top: 0,
+          top: `calc(50% - ${offsetBody}px)`,
           right: 0,
           bottom: 0,
-          transform: 'translateX(50%) rotate(45deg)',
+          transform: 'translate(50%, -50%) rotate(45deg)',
           ...style,
         }
       default:
         return {
           right: 0,
           bottom: 0,
-          left: 0,
-          transform: 'translateY(50%) rotate(45deg)',
+          left: `calc(50% - ${offsetBody}px)`,
+          transform: 'translate(-50%, 50%) rotate(45deg)',
           ...style,
         }
     }
@@ -409,6 +415,7 @@ export class Tooltip extends Component {
       position,
       tailHeight,
       offset,
+      offsetBody,
       entering,
       duration,
       interactive,
@@ -439,7 +446,7 @@ export class Tooltip extends Component {
             {children}
           </div>
           <div style={this.getMaskStyle(maskStyle)}/>
-          <div style={this.getTailStyle(position, tailHeight, tailStyle)}/>
+          <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody)}/>
         </div>
       </div>
     )
