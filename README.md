@@ -1,4 +1,4 @@
-# React Mint &middot; [![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react)
+# React Mint &middot; [![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react-mint)
 
 react-mint is a tooltip library built utilizing React-specific features like portals and context to provide a rich set of features for large applications.
 
@@ -79,7 +79,11 @@ The height of the tooltip's tail in pixels
 
 **offset** : int (default : 6)
 
-The spacing between the tooltip tail and the parent element it points to in pixels
+The vertical spacing between the tooltip tail and the parent element it points to in pixels
+
+**offsetBody** : int (default : 0)
+
+The horizontal offset that shifts the tooltip tail away from the centered state on the body
 
 **pure** : boolean (default : true)
 
