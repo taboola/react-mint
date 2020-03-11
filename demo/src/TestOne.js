@@ -10,10 +10,10 @@ export class TestOne extends Component {
     return (
       <TooltipPortal
         //portal={this.state.clicked}
-        // themes={{
-        //   default: {color: 'red'},
-        //   night: {color: 'AliceBlue', style: {color: 'green'}}
-        // }}
+        themes={{
+          default: null,
+          night: null,
+        }}
         // defaultTheme={this.state.clicked ? 'night' : 'default'}
       >
         <div
@@ -44,7 +44,7 @@ export class TestOne extends Component {
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'bottom'} test={this.state.width} showing={true}>
+          <Tooltip position={'bottom'} test={this.state.width} showing={true} boxClassName={'test-box'} maskClassName={'test-mask'} tailClassName={'test-tail'}>
             <div style={{width: this.state.width}}>
               {'test tip'}
             </div>

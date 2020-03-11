@@ -13,3 +13,17 @@ a {
   color: #303030;
   text-decoration: none;
 }
+
+.test-box {
+  font-size: 40px;
+  padding: 30px !important;
+}
+
+.test-mask {
+  background: blue !important;
+
+}
+
+.test-tail {
+  background: blue !important;
+}

@@ -75,7 +75,7 @@ Controls whether or not the tooltip can be interacted with using the mouse. When
 
 **tailHeight** : int (default: 6)
 
-The height of the tooltip's tail in pixels
+The height of the tooltip's tail in pixels. A tail height of 0 will hide the tail
 
 **offset** : int (default : 6)
 
@@ -129,6 +129,23 @@ The function that gets called when the tooltip is mounting or unmounting. This f
   {children}
 </Tooltip>
 ```
+
+**boxClassName** : string
+
+Class name that gets applied to the box div. If the style is not applying properly, try
+also applying the style to maskClassName. Styles applied to the box are normally
+programatically computed based on passed in styles, so certain styles like background
+color may require some trial and error
+
+**maskClassName** : string
+
+Class name that gets applied to a mask that gets rendered. Certain styles like background
+color and border radius should be applied additionally on this class, but sizing styles like
+padding should not be applied
+
+**tailClassName** : string
+
+Class name that gets applied to the tail. Typically you just change colors here
 
 **theme** : string (default: undefined)
 

@@ -28,6 +28,9 @@ export const tooltipPropTypes = {
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
   getTransitionStyle: PropTypes.func,
+  boxClassName: PropTypes.string,
+  maskClassName: PropTypes.string,
+  tailClassName: PropTypes.string,
   tailHeight: PropTypes.number,
   offset: PropTypes.number,
   offsetBody: PropTypes.number,
@@ -423,6 +426,9 @@ export class Tooltip extends Component {
       style,
       boxStyle: propBoxStyle,
       tailStyle: propTailStyle,
+      boxClassName,
+      maskClassName,
+      tailClassName,
     } = this.props
 
     const {
@@ -441,12 +447,12 @@ export class Tooltip extends Component {
     const tooltip = (
       <div style={this.getTooltipStyle(top, left, interactive)} ref={this.tooltipRef}>
         {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset)}/>}
-        <div style={boxStyle}>
+        <div style={boxStyle} className={boxClassName}>
           <div style={{position: 'relative', zIndex: 2}}>
             {children}
           </div>
-          <div style={this.getMaskStyle(maskStyle)}/>
-          <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody)}/>
+          {tailHeight > 0 && <div style={this.getMaskStyle(maskStyle)} className={maskClassName}/>}
+          {tailHeight > 0 && <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody)} className={tailClassName} />}
         </div>
       </div>
     )
