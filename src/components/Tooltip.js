@@ -78,6 +78,10 @@ export class Tooltip extends Component {
     width: 0,
     height: 0,
   };
+  portalRect = {
+    top: 0,
+    left: 0,
+  }
   scrollParent = null;
   throttling = false;
   unmounted = false;
@@ -93,10 +97,12 @@ export class Tooltip extends Component {
   }
   componentDidUpdate = (prevProps) => {
     const {
-      sourceRef: prevSourceRef
+      sourceRef: prevSourceRef,
+      portalId: prevPortalId,
     } = prevProps
     const {
       sourceRef,
+      portalId,
       pure,
       inline,
       position,
@@ -108,6 +114,9 @@ export class Tooltip extends Component {
       this.setPosition()
     }
     else {
+      if(portalId !== prevPortalId) {
+        this.setPortalRect();
+      }
       if(sourceRef !== prevSourceRef) {
         this.setSourceRect();
         this.findScrollParent();
@@ -124,6 +133,8 @@ export class Tooltip extends Component {
         this.sourceRect.height,
         this.tooltipRect.width,
         this.tooltipRect.height,
+        this.portalRect.top,
+        this.portalRect.left,
       )
     }
   }
@@ -140,6 +151,10 @@ export class Tooltip extends Component {
       width: tooltipWidth,
       height: tooltipHeight,
     } = this.setTooltipRect();
+    const { 
+      top: portalTop,
+      left: portalLeft,
+    } = this.setPortalRect();
     this.memoizedSetPosition(
       position,
       tailHeight,
@@ -152,6 +167,8 @@ export class Tooltip extends Component {
       sourceHeight,
       tooltipWidth,
       tooltipHeight,
+      portalTop,
+      portalLeft,
     )
   }
   memoizedSetPosition = Memoize((
@@ -166,12 +183,14 @@ export class Tooltip extends Component {
     sourceHeight,
     tooltipWidth,
     tooltipHeight,
+    portalTop,
+    portalLeft,
   ) => {
-    let left = 0;
-    let top = 0;
+    let left = -portalLeft;
+    let top = -portalTop;
     if(!inline) {
-      left = sourceLeft
-      top = sourceTop
+      left += sourceLeft
+      top += sourceTop
     }
     const totalOffset = tailHeight + offset;
     switch(position) {
@@ -200,7 +219,10 @@ export class Tooltip extends Component {
   })
   setSourceRect = () => {
     const { sourceRef } = this.props
-    if(sourceRef) {
+    if(sourceRef.current) {
+      this.sourceRect = sourceRef.current.getBoundingClientRect();
+    }
+    else if(sourceRef) {
       this.sourceRect = sourceRef.getBoundingClientRect();
     }
     return this.sourceRect;
@@ -210,6 +232,13 @@ export class Tooltip extends Component {
       this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
     }
     return this.tooltipRect;
+  }
+  setPortalRect = () => {
+    const { portalId, inline } = this.props
+    if(portalId && !inline) {
+      this.portalRect = document.getElementById(portalId).getBoundingClientRect();
+    }
+    return this.portalRect
   }
   findScrollParent = () => {
     let el = this.props.sourceRef;
@@ -435,9 +464,9 @@ export class Tooltip extends Component {
       top,
       left
     } = this.state
-    const element = this.getPortalElement(portalId);
-    if(!element) {
-      return null;
+    let element = null; 
+    if(!inline) {
+      element = this.getPortalElement(portalId);
     }
     const {
       boxStyle,

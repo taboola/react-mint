@@ -91,7 +91,8 @@ When true, a shallow comparison check is done on the props passed in and if a di
 
 **inline** : boolean (default : false)
 
-Controls whether or not the tooltip is rendered at the current location in the DOM. Use this flag if for whatever reason you do not wish to use portals or something constrains you to render the tooltip in the DOM at the same location in the React DOM.
+Controls whether or not the tooltip is rendered at the current location in the DOM. Use this flag if for whatever reason you do not wish to use portals or something constrains you to render the tooltip in the DOM at the same location in the React DOM. Please note, the tooltips utilize absolute positioning so if you use inline, the DOM element wrapping the tooltip should have absolute or relative positioning
+in order to 'capture' the tooltip
 
 **style** : object
 
