@@ -246,14 +246,15 @@ export class Tooltip extends Component {
     }
     else {
       let el = sourceRef;
-      while (el && el.parentNode) {
+      while (el && el.parentNode && el.parentNode !== document) {
         el = el.parentNode;
+        const style = getComputedStyle(el)
         if(
-          el.style && (
-            el.style['overflow-y'] === 'scroll'
-            || el.style['overflow-y'] === 'auto'
-              || el.style['overflow-x'] === 'scroll'
-                || el.style['overflow-x'] === 'auto'
+          style && (
+            style['overflow-y'] === 'scroll'
+            || style['overflow-y'] === 'auto'
+              || style['overflow-x'] === 'scroll'
+                || style['overflow-x'] === 'auto'
           )
         ) {
           this.scrollParent = el;

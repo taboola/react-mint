@@ -13,13 +13,17 @@ export class TestThree extends Component {
         </Tooltip>
         <TooltipPortal>
           <div
-            style={{width: '100%', height: '100%', padding: 50}}
+            style={{height: 100, padding: 50}}
+            className={'overflow'}
             onClick={() => this.setState(({clicked}) => ({clicked: !clicked}))}
           >
-              <div style={{background: 'green', width: 50, height: 50, position: 'relative'}}>
-                <Tooltip position={'bottom'} showing={true}>
-                    {'hewo'}
-                </Tooltip>
+              <div style={{background: 'green', width: 50, height: 100000, position: 'relative', display: 'flex', flexDirection: 'column'}}>
+                <div>
+                  {'item'}
+                  <Tooltip position={'bottom'}>
+                      {'hewo'}
+                  </Tooltip>
+                </div>
               </div>
           </div>
       </TooltipPortal>

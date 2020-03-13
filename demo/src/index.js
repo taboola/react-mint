@@ -6,6 +6,10 @@ import { TestTwo } from './TestTwo'
 import { TestThree } from './TestThree'
 
 render(
-  <TestTwo />,
+  <div style={{display: 'flex'}}>
+   <TestTwo />
+   <TestThree />
+  </div>
+ ,
   document.querySelector('#root')
 );

@@ -27,3 +27,7 @@ a {
 .test-tail {
   background: blue !important;
 }
+
+.overflow {
+  overflow-y: auto;
+}
