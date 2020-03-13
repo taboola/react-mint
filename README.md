@@ -169,6 +169,14 @@ The ref of the component you want the tooltip to treat as its 'parent'. Typicall
 
 TooltipPortals provide two main functionalities: the React portal which all descendant Tooltip components will anchor to and a React provider which will provide themes to descendant Tooltip components.
 
+**style** : object
+
+The style object passed into the enclosing div if you need to pass it styles
+
+**className** : string
+
+The class name passed into the enclosing div if you need to style/select it
+
 **themes** : object
 
 A map of keys to objects which represent all the props in a theme. For example, a themes object of
