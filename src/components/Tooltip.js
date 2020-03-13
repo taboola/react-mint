@@ -45,6 +45,7 @@ export class Tooltip extends Component {
     ...tooltipPropTypes,
     children: PropTypes.node.isRequired,
     sourceRef: PropTypes.instanceOf(Element),
+    scrollRef: PropTypes.instanceOf(Element),
     entering: PropTypes.bool,
     duration: PropTypes.number,
   }
@@ -219,11 +220,8 @@ export class Tooltip extends Component {
   })
   setSourceRect = () => {
     const { sourceRef } = this.props
-    if(sourceRef.current) {
-      this.sourceRect = sourceRef.current.getBoundingClientRect();
-    }
-    else if(sourceRef) {
-      this.sourceRect = sourceRef.getBoundingClientRect();
+    if(sourceRef) {
+      this.sourceRect = (sourceRef.current || sourceRef).getBoundingClientRect();
     }
     return this.sourceRect;
   }
@@ -241,19 +239,30 @@ export class Tooltip extends Component {
     return this.portalRect
   }
   findScrollParent = () => {
-    let el = this.props.sourceRef;
-    while (el && el.parentNode) {
-      el = el.parentNode;
-      if(
-        el.style && (
-          el.style['overflow-x'] === 'scroll'
-          || el.style['overflow-y'] === 'scroll'
-        )
-      ) {
-        this.scrollParent = el;
-        el.onscroll = this.onScroll;
-        break;
+    const { sourceRef, scrollRef } = this.props;
+    if(scrollRef) {
+      this.scrollParent = (scrollRef || scrollRef.current)
+      return;
+    }
+    else {
+      let el = sourceRef;
+      while (el && el.parentNode) {
+        el = el.parentNode;
+        if(
+          el.style && (
+            el.style['overflow-y'] === 'scroll'
+            || el.style['overflow-y'] === 'auto'
+              || el.style['overflow-x'] === 'scroll'
+                || el.style['overflow-x'] === 'auto'
+          )
+        ) {
+          this.scrollParent = el;
+          break;
+        }
       }
+    }
+    if(this.scrollParent) {
+      this.scrollParent.onscroll = this.onScroll;
     }
   }
   onScroll = () => {

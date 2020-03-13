@@ -1,4 +1,4 @@
-# React Mint &middot; [![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react-mint)
+# React Mint &middot; [![GitHub license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![npm version](https://img.shields.io/npm/v/react-mint.svg?style=flat)](https://www.npmjs.com/package/react-mint)
 
 react-mint is a tooltip library built utilizing React-specific features like portals and context to provide a rich set of features for large applications.
 
@@ -155,6 +155,11 @@ The theme that will get applied to the tooltip from the nearest TooltipPortal. R
 **portalId** : string (default: tooltip-portal)
 
 The element ID of the DOM element you want your tooltip to be rendered at. If using a TooltipPortal, this will be automatically generated for you, otherwise you will need a DOM element as an ancestor to this tooltip with an ID matching portalId
+
+**scrollRef** : React ref (default: undefined)
+
+The ref of the innermost DOM element that will be scrollable. The tooltip naturally hooks onto this element, but in the event that it hooks onto the wrong element due to stray css properties on earlier
+elements, you can manually pass in the ref as a workaround. This information is necessary to allow the tooltip to follow along when scrolling and to prevent duplication issues
 
 **sourceRef** : React ref (default: undefined)
 
