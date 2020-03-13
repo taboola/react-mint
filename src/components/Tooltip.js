@@ -62,6 +62,8 @@ export class Tooltip extends Component {
     inline: false,
     interactive: false,
   }
+  static onScroll = () => Tooltip.scrollers.forEach(thunk => thunk())
+  static scrollers = [];
   state = {
     width: 0,
     height: 0,
@@ -84,17 +86,20 @@ export class Tooltip extends Component {
     left: 0,
   }
   scrollParent = null;
+  scrollParentThunk = null;
   throttling = false;
   unmounted = false;
   componentDidMount = () => {
     this.setPosition();
     this.findScrollParent();
+    Tooltip.scrollers.push(this.onScroll)
   }
   componentWillUnmount = () => {
     this.unmounted = true;
-    if(this.scrollParent) {
-      this.scrollParent.onscroll = null;
-    }
+    // if(this.scrollParent) {
+    //   this.scrollParent.onscroll = this.scrollParentThunk;
+    // }
+    Tooltip.scrollers = Tooltip.scrollers.filter(thunk => thunk !== this.onScroll)
   }
   componentDidUpdate = (prevProps) => {
     const {
@@ -240,9 +245,9 @@ export class Tooltip extends Component {
   }
   findScrollParent = () => {
     const { sourceRef, scrollRef } = this.props;
+    let scrollParent = null;
     if(scrollRef) {
-      this.scrollParent = (scrollRef || scrollRef.current)
-      return;
+      scrollParent = (scrollRef || scrollRef.current)
     }
     else {
       let el = sourceRef;
@@ -257,13 +262,19 @@ export class Tooltip extends Component {
                 || style['overflow-x'] === 'auto'
           )
         ) {
-          this.scrollParent = el;
+          scrollParent = el;
           break;
         }
       }
     }
-    if(this.scrollParent) {
-      this.scrollParent.onscroll = this.onScroll;
+    if(scrollParent && this.scrollParent !== scrollParent) {
+      this.scrollParent = scrollParent;
+      this.scrollParentThunk = scrollParent.onscroll;
+      // this.scrollParent.onscroll = () => {
+      //   this.onScroll();
+      //   this.scrollParentThunk && this.scrollParentThunk();
+      // }
+      this.scrollParent.onscroll = Tooltip.onScroll
     }
   }
   onScroll = () => {
