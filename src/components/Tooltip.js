@@ -23,7 +23,11 @@ const defaultBoxStyle = {
 const getTailHeight = (width) => width * .866
 
 export const tooltipPropTypes = {
-  position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
+  position: PropTypes.oneOf([
+    'top', 'top-start', 'top-end',
+    'bottom', 'bottom-start', 'bottom-end',
+    'left', 'left-start', 'left-end', 
+    'right', 'right-start', 'right-end']),
   style: PropTypes.object,
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
@@ -69,6 +73,8 @@ export class Tooltip extends Component {
     height: 0,
     top: 0,
     left: 0,
+    absoluteTop: 0,
+    absoluteLeft: 0,
   }
   tooltipRef = createRef();
   sourceRect = {
@@ -192,35 +198,68 @@ export class Tooltip extends Component {
     portalTop,
     portalLeft,
   ) => {
-    let left = -portalLeft;
-    let top = -portalTop;
-    if(!inline) {
-      left += sourceLeft
-      top += sourceTop
-    }
+    let left = 0;
+    let top = 0;
     const totalOffset = tailHeight + offset;
     switch(position) {
       case 'left':
         top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
         left -= (tooltipWidth + totalOffset);
         break;
+      case 'left-start':
+        top += offsetBody
+        left -= (tooltipWidth + totalOffset);
+        break;
+      case 'left-end':
+        top += offsetBody - tooltipHeight + sourceHeight
+        left -= (tooltipWidth + totalOffset);
+        break;
       case 'bottom':
         top += (sourceHeight + totalOffset)
         left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
         break;
+      case 'bottom-start':
+        top += (sourceHeight + totalOffset)
+        left += offsetBody
+        break;
+      case 'bottom-end':
+        top += (sourceHeight + totalOffset)
+        left += offsetBody - tooltipWidth + sourceWidth
+        break;
       case 'right':
         top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
         left += (sourceWidth + totalOffset)
+        break;
+      case 'right-start':
+        top += offsetBody
+        left += (sourceWidth + totalOffset)
+        break;
+      case 'right-end':
+        top += offsetBody - tooltipHeight + sourceHeight
+        left += (sourceWidth + totalOffset)
+        break;
+      case 'top-start':
+        top -= (tooltipHeight + totalOffset)
+        left += offsetBody
+        break;
+      case 'top-end':
+        top -= (tooltipHeight + totalOffset)
+        left += offsetBody - tooltipWidth + sourceWidth
         break;
       default:
         top -= (tooltipHeight + totalOffset)
         left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
         break;
     }
-
+    // if(!inline) {
+      left += sourceLeft
+      top += sourceTop
+    // }
     this.setState({
-      top,
-      left,
+      top: top - portalTop - (inline ? sourceTop : 0 ),
+      left: left - portalLeft - (inline ? sourceLeft : 0 ),
+      absoluteTop: top,
+      absoluteLeft: left,
     })
   })
   setSourceRect = () => {
@@ -355,39 +394,49 @@ export class Tooltip extends Component {
     }
   })
 
-  getInteractiveStyle = Memoize((position, tailHeight, offset) => {
+  getInteractiveStyle = Memoize((position, tailHeight, offset, sourceWidth, sourceHeight, offsetWidth, offsetHeight) => {
     const totalOffset = tailHeight + offset;
     let positionStyle = null;
     switch(position) {
       case 'left':
+      case 'left-start':
+      case 'left-end':
         positionStyle = {
           right: -totalOffset,
+          top: offsetHeight,
           width: totalOffset,
         }
         break;
       case 'bottom':
-      positionStyle = {
-        top: -totalOffset,
-        height: totalOffset,
-      }
+      case 'bottom-start':
+      case 'bottom-end':
+        positionStyle = {
+          top: -totalOffset,
+          left: offsetWidth,
+          height: totalOffset,
+        }
         break;
       case 'right':
+      case 'right-start':
+      case 'right-end':
         positionStyle = {
           left: -totalOffset,
+          top: offsetHeight,
           width: totalOffset,
         }
         break;
       default:
         positionStyle = {
           bottom: -totalOffset,
+          left: offsetWidth,
           height: totalOffset,
         }
         break;
     }
     return {
       position: 'absolute',
-      width: '100%',
-      height: '100%',
+      width: sourceWidth,
+      height: sourceHeight,
       ...positionStyle,
     }
   })
@@ -407,7 +456,7 @@ export class Tooltip extends Component {
     }
   })
 
-  getTailStyle = Memoize((position, tailHeight, tailStyle, offsetBody) => {
+  getTailStyle = Memoize((position, tailHeight, tailStyle, offsetBody, sourceWidth, sourceHeight, offsetWidth, offsetHeight) => {
     const vertical = !(position === 'right' || position === 'left')
     const start = !(position === 'bottom' || position === 'right')
     const style = {
@@ -419,24 +468,30 @@ export class Tooltip extends Component {
     }
     switch(position) {
       case 'right':
+      case 'right-start':
+      case 'right-end':
         return {
-          top: `calc(50% - ${offsetBody}px)`,
+          top: sourceHeight / 2 + offsetHeight - offsetBody,
           bottom: 0,
           left: 0,
           transform: 'translate(-50%, -50%) rotate(45deg)',
           ...style,
         }
       case 'bottom':
+      case 'bottom-start':
+      case 'bottom-end':
         return {
           top: 0,
           right: 0,
-          left: `calc(50% - ${offsetBody}px)`,
+          left: sourceWidth / 2 + offsetWidth - offsetBody,
           transform: 'translate(-50%, -50%) rotate(45deg)',
           ...style,
         }
       case 'left':
+      case 'left-start':
+      case 'left-end':
         return {
-          top: `calc(50% - ${offsetBody}px)`,
+          top: sourceHeight / 2 + offsetHeight - offsetBody,
           right: 0,
           bottom: 0,
           transform: 'translate(50%, -50%) rotate(45deg)',
@@ -446,7 +501,7 @@ export class Tooltip extends Component {
         return {
           right: 0,
           bottom: 0,
-          left: `calc(50% - ${offsetBody}px)`,
+          left: sourceWidth / 2 + offsetWidth - offsetBody,
           transform: 'translate(-50%, 50%) rotate(45deg)',
           ...style,
         }
@@ -483,7 +538,9 @@ export class Tooltip extends Component {
 
     const {
       top,
-      left
+      left,
+      absoluteTop,
+      absoluteLeft,
     } = this.state
     let element = null; 
     if(!inline) {
@@ -494,15 +551,23 @@ export class Tooltip extends Component {
       maskStyle,
       tailStyle,
     } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration, position)
+    const {
+      top: sourceTop,
+      left: sourceLeft,
+      width: sourceWidth,
+      height: sourceHeight,
+    } =  this.sourceRect
+    const offsetWidth = sourceLeft - absoluteLeft
+    const offsetHeight = sourceTop - absoluteTop
     const tooltip = (
       <div style={this.getTooltipStyle(top, left, interactive)} ref={this.tooltipRef}>
-        {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset)}/>}
+        {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset, sourceWidth, sourceHeight, offsetWidth, offsetHeight)}/>}
         <div style={boxStyle} className={boxClassName}>
           <div style={{position: 'relative', zIndex: 2}}>
             {children}
           </div>
           {tailHeight > 0 && <div style={this.getMaskStyle(maskStyle)} className={maskClassName}/>}
-          {tailHeight > 0 && <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody)} className={tailClassName} />}
+          {tailHeight > 0 && <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody, sourceWidth, sourceHeight, offsetWidth, offsetHeight)} className={tailClassName} />}
         </div>
       </div>
     )

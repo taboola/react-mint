@@ -8,7 +8,7 @@ export class TestThree extends Component {
   render = () => {
     return (
       <div style={{marginLeft: 100, marginTop: 100, width: 300, height: 300, background: 'blue', position: 'relative'}}>
-        <Tooltip position={'bottom'} inline={true} showing={true}>
+        <Tooltip position={'bottom'} inline={true} showing={true} offsetBody={5}>
             {'hewo2'}
         </Tooltip>
         <TooltipPortal>
@@ -18,9 +18,9 @@ export class TestThree extends Component {
             onClick={() => this.setState(({clicked}) => ({clicked: !clicked}))}
           >
               <div style={{background: 'green', width: 50, height: 100000, position: 'relative', display: 'flex', flexDirection: 'column'}}>
-                <div>
+                <div style={{background: 'orange'}}>
                   {'item'}
-                  <Tooltip position={'bottom'}>
+                  <Tooltip position={'bottom'} offsetBody={5}>
                       {'hewo'}
                   </Tooltip>
                 </div>

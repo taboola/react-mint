@@ -29,22 +29,22 @@ export class TestOne extends Component {
           //   clicked: !clicked
           // }))}
         >
-          <Tooltip position={'top'} test={this.state.width} showing={true}>
+          <Tooltip position={'top'} test={this.state.width} showing={true} interactive={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'right'} test={this.state.width} showing={true}>
+          <Tooltip position={'right'} test={this.state.width} showing={true} interactive={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'left'} test={this.state.width} showing={true}>
+          <Tooltip position={'left'} test={this.state.width} showing={true} interactive={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'bottom'} test={this.state.width} showing={true} boxClassName={'test-box'} maskClassName={'test-mask'} tailClassName={'test-tail'}>
+          <Tooltip position={'bottom'} test={this.state.width} showing={true} boxClassName={'test-box'} maskClassName={'test-mask'} tailClassName={'test-tail'} interactive={true}>
             <div style={{width: this.state.width}}>
               {'test tip'}
             </div>
