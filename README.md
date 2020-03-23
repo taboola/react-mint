@@ -92,7 +92,7 @@ When true, a shallow comparison check is done on the props passed in and if a di
 **inline** : boolean (default : false)
 
 Controls whether or not the tooltip is rendered at the current location in the DOM. Use this flag if for whatever reason you do not wish to use portals or something constrains you to render the tooltip in the DOM at the same location in the React DOM. Please note, the tooltips utilize absolute positioning so if you use inline, the DOM element wrapping the tooltip should have absolute or relative positioning
-in order to 'capture' the tooltip
+in order to 'capture' the tooltip. This will automatically become true if the tooltip has no ancestor TooltipPortal and an explicit portalId is not given
 
 **style** : object
 
@@ -152,9 +152,10 @@ Class name that gets applied to the tail. Typically you just change colors here
 
 The theme that will get applied to the tooltip from the nearest TooltipPortal. Read the TooltipPortal props for more information on theming
 
-**portalId** : string (default: tooltip-portal)
+**portalId** : string (default: null)
 
-The element ID of the DOM element you want your tooltip to be rendered at. If using a TooltipPortal, this will be automatically generated for you, otherwise you will need a DOM element as an ancestor to this tooltip with an ID matching portalId
+The element ID of the DOM element you want your tooltip to be rendered at. If using a TooltipPortal, this will be automatically generated for you, otherwise you will need a DOM element as an ancestor to this tooltip with an ID matching portalId. If there is no TooltipPortal and this prop
+is not provided then the tooltip will switch to inline mode
 
 **scrollRef** : React ref (default: undefined)
 
@@ -167,7 +168,8 @@ The ref of the component you want the tooltip to treat as its 'parent'. Typicall
 
 ### `<TooltipPortal>`
 
-TooltipPortals provide two main functionalities: the React portal which all descendant Tooltip components will anchor to and a React provider which will provide themes to descendant Tooltip components.
+TooltipPortals provide two main functionalities: the React portal which all descendant Tooltip components will anchor to and a React provider which will provide themes to descendant Tooltip components. If a tooltip has no ancestor TooltipPortal and a specific portalId is not provided, the tooltip
+will default to inline
 
 **style** : object
 

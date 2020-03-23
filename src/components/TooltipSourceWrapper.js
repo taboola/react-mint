@@ -15,7 +15,7 @@ export const TooltipSourceWrapper = ({ theme, style, boxStyle, tailStyle, ...res
       }
       return (
         <TooltipSource
-          portalId={portalId || defaultPortalId}
+          portalId={portalId}
           {...themeProps}
           {...rest}
           style={style}

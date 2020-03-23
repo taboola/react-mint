@@ -61,7 +61,7 @@ export class Tooltip extends Component {
     tailHeight: defaultTailHeight,
     offset: defaultOffset,
     offsetBody: defaultOffsetBody,
-    portalId: defaultPortalId,
+    portalId: null,
     pure: true,
     inline: false,
     interactive: false,
@@ -138,7 +138,7 @@ export class Tooltip extends Component {
         tailHeight,
         offset,
         offsetBody,
-        inline,
+        inline || !portalId,
         this.sourceRect.top,
         this.sourceRect.left,
         this.sourceRect.width,
@@ -152,7 +152,7 @@ export class Tooltip extends Component {
   }
 
   setPosition = () => {
-    const { inline, position, tailHeight, offset, offsetBody } = this.props
+    const { inline, portalId, position, tailHeight, offset, offsetBody } = this.props
     const {
       top: sourceTop,
       left: sourceLeft,
@@ -172,7 +172,7 @@ export class Tooltip extends Component {
       tailHeight,
       offset,
       offsetBody,
-      inline,
+      inline || !portalId,
       sourceTop,
       sourceLeft,
       sourceWidth,
@@ -543,7 +543,7 @@ export class Tooltip extends Component {
       absoluteLeft,
     } = this.state
     let element = null; 
-    if(!inline) {
+    if(!inline && portalId) {
       element = this.getPortalElement(portalId);
     }
     const {
@@ -571,6 +571,6 @@ export class Tooltip extends Component {
         </div>
       </div>
     )
-    return inline ? tooltip : createPortal(tooltip, element)
+    return element ? createPortal(tooltip, element) : tooltip
   }
 }
