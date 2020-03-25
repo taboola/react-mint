@@ -53,9 +53,9 @@ The direction the tooltip renders. The enums used mirror the ones used for css p
 
 The total duration of the mounting/unmounting animation. If you want to use an animation with varying durations, use the longest time here.
 
-**delay** : int (default : 0)
+**delay** : int | array([int, int]) (default : 0)
 
-The delay between when the parent element is hovered over and when the tooltip is mounted.
+The delay for the tooltip to show/hide. If just an int is provided, this value will be the show delay only. If a tuple is provided, the first int is the show delay and the second is the hide delay.
 
 **hoverable** : bool (default: true)
 

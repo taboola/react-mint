@@ -10,7 +10,7 @@ export class TooltipSource extends Component {
     children: PropTypes.node.isRequired,
     sourceRef: PropTypes.instanceOf(Element),
     duration: PropTypes.number,
-    delay: PropTypes.number,
+    delay: PropTypes.oneOfType([PropTypes.number, PropTypes.array]),
     theme: PropTypes.string,
     showing: PropTypes.bool,
     hoverable: PropTypes.bool,
@@ -43,7 +43,7 @@ export class TooltipSource extends Component {
       if(clickable) {
         ref.onmousedown = this.onMouseClick
       }
-      else if(hoverable) {
+      if(hoverable) {
         ref.onmouseenter = this.onMouseOver
         ref.onmouseleave = this.onMouseOut
       }
@@ -58,23 +58,31 @@ export class TooltipSource extends Component {
   }
   onMouseClick = () => this.state.hovered ? this.onMouseOut() : this.onMouseOver();
   onMouseOver = () => {
-    const { delay, interactive } = this.props;
-    if(delay && (!interactive || !this.state.triggered)) {
-      this.timer = setTimeout(this.setHovered, delay)
+    const { delay } = this.props;
+    this.stopTimer();
+    this.triggered = true;
+    const delayValue = Array.isArray(delay) ? delay[0] : delay
+    if(delayValue) {
+      this.timer = setTimeout(() => this.triggered && this.setHovered(), delayValue)
     }
     else {
       this.setHovered();
     }
   }
-  setHovered = () => this.setState({hovered: true, triggered: true});
+  setHovered = () => this.setState({hovered: true});
   onMouseOut = () => {
+    const { delay } = this.props;
     this.stopTimer();
-    this.setState({hovered: false});
-    if(this.props.interactive) {
-      this.animationFrame = window.requestAnimationFrame(this.checkHovered)
+    this.triggered = false;
+    const delayValue = Array.isArray(delay) && delay.length > 1 ? delay[1] : null
+    if(delayValue) {
+      this.timer = setTimeout(this.unsetHovered, delayValue)
+    }
+    else {
+      this.animationFrame = window.requestAnimationFrame(this.unsetHovered)
     }
   }
-  checkHovered = () => !this.state.hovered && this.setState({triggered: false})
+  unsetHovered = () => !this.triggered && this.setState({hovered: false});
   stopTimer = () => {
     clearTimeout(this.timer);
     this.timer = null;
@@ -115,8 +123,8 @@ export class TooltipSource extends Component {
       <div 
         className={'tooltip-source'} 
         ref={this.setRef} 
-        onMouseOver={(interactive && triggered) ? this.onMouseOver : undefined} 
-        onMouseOut={(interactive && triggered) ? this.onMouseOut : undefined}
+        onMouseOver={interactive ? this.onMouseOver : undefined} 
+        onMouseOut={interactive ? this.onMouseOut : undefined}
       >
         <Transition enter={sourceRef && (showing === undefined ? hovered : showing)} timeout={duration}>
           {(entering) => (
