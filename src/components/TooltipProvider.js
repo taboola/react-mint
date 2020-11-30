@@ -13,6 +13,7 @@ export class TooltipProvider extends Component {
     portal: PropTypes.bool,
     className: PropTypes.string,
     style: PropTypes.object,
+    forwardedRef: PropTypes.object,
   }
 
   static defaultProps = {
@@ -60,13 +61,18 @@ export class TooltipProvider extends Component {
       children,
       className,
       style,
+      themes,
+      defaultTheme,
+      providerValue,
+      forwardedRef,
+      ...rest
     } = this.props
     const {
       value,
       portalId,
     } = this.state
     const wrappedChildren = portal
-      ? <div id={portalId} className={className} style={style}> {children} </div>
+      ? <div ref={forwardedRef} id={portalId} className={className} style={style} {...rest}> {children} </div>
       : children
     return (      
       <TooltipContext.Provider value={value}>

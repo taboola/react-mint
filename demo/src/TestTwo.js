@@ -28,14 +28,17 @@ const themes = {
 }
 
 export class TestTwo extends Component {
+  portalRef = React.createRef();
   state= {
     clicked: false,
   }
   render = () => {
     return (
       <TooltipPortal
+        ref={this.portalRef}
         themes={themes}
         defaultTheme={'night'}
+        data-test={'test'}
       >
       <div>
           <div
