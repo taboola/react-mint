@@ -1,6 +1,6 @@
 {
   "name": "react-mint",
-  "version": "0.11.4",
+  "version": "0.11.5",
   "description": "Clean React tooltips utilizing built-in React sugar like portals and context",
   "main": "./dist/index.js",
   "scripts": {

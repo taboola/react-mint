@@ -388,6 +388,7 @@ export class Tooltip extends Component {
   getTooltipStyle = Memoize((top, left, interactive) => {
     return {
       position: 'absolute',
+      zIndex: 10,
       pointerEvents: !interactive && 'none',
       top,
       left,
