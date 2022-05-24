@@ -89,6 +89,10 @@ The horizontal offset that shifts the tooltip tail away from the centered state 
 
 When true, a shallow comparison check is done on the props passed in and if a difference is detected, will cause the component to recompute its position and size. Otherwise, it will do this computation every rerender. This defaults to true because the computation for position and size are expensive and should be minimized, therefore disabling this flag should be used with caution. If you need a state change to resize or reposition a rendered tooltip, simply passing in that property as a prop will accomplish that.
 
+**autoFlip** : boolean (default : true)
+
+Turns on the functionality which causes the tooltip to automatically flip positions (top <-> bottom, left <-> right) when the tooltip hits the edge of the nearest Portal. Typically there will be only one portal which encompasses the entire viewport, so this prop will cause flipping when the tooltip would normally to bleed off the document.
+
 **inline** : boolean (default : false)
 
 Controls whether or not the tooltip is rendered at the current location in the DOM. Use this flag if for whatever reason you do not wish to use portals or something constrains you to render the tooltip in the DOM at the same location in the React DOM. Please note, the tooltips utilize absolute positioning so if you use inline, the DOM element wrapping the tooltip should have absolute or relative positioning

@@ -42,6 +42,7 @@ export const tooltipPropTypes = {
   pure: PropTypes.bool,
   inline: PropTypes.bool,
   interactive: PropTypes.bool,
+  autoFlip: PropTypes.bool,
 }
 
 export class Tooltip extends Component {
@@ -65,6 +66,7 @@ export class Tooltip extends Component {
     pure: true,
     inline: false,
     interactive: false,
+    autoFlip: true,
   }
   static onScroll = () => Tooltip.scrollers.forEach(thunk => thunk())
   static scrollers = [];
@@ -121,6 +123,7 @@ export class Tooltip extends Component {
       tailHeight,
       offset,
       offsetBody,
+      autoFlip
     } = this.props
     if(!pure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
       this.setPosition()
@@ -147,25 +150,36 @@ export class Tooltip extends Component {
         this.tooltipRect.height,
         this.portalRect.top,
         this.portalRect.left,
+        this.portalRect.width,
+        this.portalRect.height,
+        autoFlip
       )
     }
   }
 
   setPosition = () => {
-    const { inline, portalId, position, tailHeight, offset, offsetBody } = this.props
+    const {
+      inline,
+      portalId,
+      position,
+      tailHeight,
+      offset,
+      offsetBody,
+      autoFlip,
+    } = this.props;
     const {
       top: sourceTop,
       left: sourceLeft,
       width: sourceWidth,
       height: sourceHeight,
     } = this.setSourceRect();
+    const { width: tooltipWidth, height: tooltipHeight } =
+      this.setTooltipRect();
     const {
-      width: tooltipWidth,
-      height: tooltipHeight,
-    } = this.setTooltipRect();
-    const { 
       top: portalTop,
       left: portalLeft,
+      width: portalWidth,
+      height: portalHeight,
     } = this.setPortalRect();
     this.memoizedSetPosition(
       position,
@@ -181,87 +195,168 @@ export class Tooltip extends Component {
       tooltipHeight,
       portalTop,
       portalLeft,
-    )
-  }
-  memoizedSetPosition = Memoize((
+      portalWidth,
+      portalHeight,
+      autoFlip
+    );
+  };
+  memoizedSetPosition = Memoize(
+    (
+      position,
+      tailHeight,
+      offset,
+      offsetBody,
+      inline,
+      sourceTop,
+      sourceLeft,
+      sourceWidth,
+      sourceHeight,
+      tooltipWidth,
+      tooltipHeight,
+      portalTop,
+      portalLeft,
+      portalWidth,
+      portalHeight,
+      autoFlip
+    ) => {
+      const totalOffset = tailHeight + offset;
+      let finalPosition = position;
+      let { top, left } = this.getPosition(
+        position,
+        totalOffset,
+        offsetBody,
+        sourceTop,
+        sourceLeft,
+        sourceWidth,
+        sourceHeight,
+        tooltipWidth,
+        tooltipHeight
+      );
+      if (autoFlip) {
+        const splitPosition = position.split("-");
+        let primaryPosition = splitPosition[0];
+        const secondaryPosition = splitPosition[1];
+        switch (primaryPosition) {
+          case "left":
+            if (left <= portalLeft) {
+              primaryPosition = "right";
+            }
+            break;
+          case "bottom":
+            if (top + tooltipHeight >= portalTop + portalHeight) {
+              primaryPosition = "top";
+            }
+            break;
+          case "right":
+            if (left + tooltipWidth >= portalLeft + portalWidth) {
+              primaryPosition = "left";
+            }
+            break;
+          default:
+            if (top <= portalTop) {
+              primaryPosition = "bottom";
+            }
+            break;
+        }
+        finalPosition = primaryPosition;
+        if (secondaryPosition) {
+          finalPosition += "-" + secondaryPosition;
+        }
+        if (finalPosition !== position) {
+          ({ top, left } = this.getPosition(
+            finalPosition,
+            totalOffset,
+            offsetBody,
+            sourceTop,
+            sourceLeft,
+            sourceWidth,
+            sourceHeight,
+            tooltipWidth,
+            tooltipHeight
+          ));
+        }
+      }
+
+      this.setState({
+        top: top - portalTop - (inline ? sourceTop : 0),
+        left: left - portalLeft - (inline ? sourceLeft : 0),
+        absoluteTop: top,
+        absoluteLeft: left,
+        position: finalPosition,
+      });
+    }
+  );
+  getPosition = (
     position,
-    tailHeight,
-    offset,
+    totalOffset,
     offsetBody,
-    inline,
+
     sourceTop,
     sourceLeft,
     sourceWidth,
     sourceHeight,
     tooltipWidth,
-    tooltipHeight,
-    portalTop,
-    portalLeft,
+    tooltipHeight
   ) => {
-    let left = 0;
     let top = 0;
-    const totalOffset = tailHeight + offset;
-    switch(position) {
-      case 'left':
-        top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
-        left -= (tooltipWidth + totalOffset);
+    let left = 0;
+    switch (position) {
+      case "left":
+        top += (sourceHeight - tooltipHeight) / 2 + offsetBody;
+        left -= tooltipWidth + totalOffset;
         break;
-      case 'left-start':
-        top += offsetBody
-        left -= (tooltipWidth + totalOffset);
+      case "left-start":
+        top += offsetBody;
+        left -= tooltipWidth + totalOffset;
         break;
-      case 'left-end':
-        top += offsetBody - tooltipHeight + sourceHeight
-        left -= (tooltipWidth + totalOffset);
+      case "left-end":
+        top += offsetBody - tooltipHeight + sourceHeight;
+        left -= tooltipWidth + totalOffset;
         break;
-      case 'bottom':
-        top += (sourceHeight + totalOffset)
-        left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
+      case "bottom":
+        top += sourceHeight + totalOffset;
+        left += (sourceWidth - tooltipWidth) / 2 + offsetBody;
         break;
-      case 'bottom-start':
-        top += (sourceHeight + totalOffset)
-        left += offsetBody
+      case "bottom-start":
+        top += sourceHeight + totalOffset;
+        left += offsetBody;
         break;
-      case 'bottom-end':
-        top += (sourceHeight + totalOffset)
-        left += offsetBody - tooltipWidth + sourceWidth
+      case "bottom-end":
+        top += sourceHeight + totalOffset;
+        left += offsetBody - tooltipWidth + sourceWidth;
         break;
-      case 'right':
-        top += ((sourceHeight - tooltipHeight) / 2) + offsetBody
-        left += (sourceWidth + totalOffset)
+      case "right":
+        top += (sourceHeight - tooltipHeight) / 2 + offsetBody;
+        left += sourceWidth + totalOffset;
         break;
-      case 'right-start':
-        top += offsetBody
-        left += (sourceWidth + totalOffset)
+      case "right-start":
+        top += offsetBody;
+        left += sourceWidth + totalOffset;
         break;
-      case 'right-end':
-        top += offsetBody - tooltipHeight + sourceHeight
-        left += (sourceWidth + totalOffset)
+      case "right-end":
+        top += offsetBody - tooltipHeight + sourceHeight;
+        left += sourceWidth + totalOffset;
         break;
-      case 'top-start':
-        top -= (tooltipHeight + totalOffset)
-        left += offsetBody
+      case "top-start":
+        top -= tooltipHeight + totalOffset;
+        left += offsetBody;
         break;
-      case 'top-end':
-        top -= (tooltipHeight + totalOffset)
-        left += offsetBody - tooltipWidth + sourceWidth
+      case "top-end":
+        top -= tooltipHeight + totalOffset;
+        left += offsetBody - tooltipWidth + sourceWidth;
         break;
       default:
-        top -= (tooltipHeight + totalOffset)
-        left += ((sourceWidth - tooltipWidth) / 2) + offsetBody
+        top -= tooltipHeight + totalOffset;
+        left += (sourceWidth - tooltipWidth) / 2 + offsetBody;
         break;
     }
-    // if(!inline) {
-      left += sourceLeft
-      top += sourceTop
-    // }
-    this.setState({
-      top: top - portalTop - (inline ? sourceTop : 0 ),
-      left: left - portalLeft - (inline ? sourceLeft : 0 ),
-      absoluteTop: top,
-      absoluteLeft: left,
-    })
-  })
+    left += sourceLeft;
+    top += sourceTop;
+    return {
+      top,
+      left,
+    };
+  };
   setSourceRect = () => {
     const { sourceRef } = this.props
     if(sourceRef) {
@@ -299,6 +394,8 @@ export class Tooltip extends Component {
             || style['overflow-y'] === 'auto'
               || style['overflow-x'] === 'scroll'
                 || style['overflow-x'] === 'auto'
+                  || style['overflow'] === 'scroll'
+                    || style['overflow'] === 'auto'
           )
         ) {
           scrollParent = el;
@@ -318,12 +415,12 @@ export class Tooltip extends Component {
   }
   onScroll = () => {
     if (!this.throttling) {
+      this.throttling = true;
+      this.setPosition();
       window.requestAnimationFrame(() => {
         if(this.unmounted) return;
-        this.setPosition();
         this.throttling = false;
       });
-      this.throttling = true;
     }
   }
   getStyles = Memoize((style, boxStyle, tailStyle, getTransitionStyle, entering, duration, position) => {
@@ -521,7 +618,6 @@ export class Tooltip extends Component {
       portalId,
       inline,
 
-      position,
       tailHeight,
       offset,
       offsetBody,
@@ -542,6 +638,7 @@ export class Tooltip extends Component {
       left,
       absoluteTop,
       absoluteLeft,
+      position
     } = this.state
     let element = null; 
     if(!inline && portalId) {

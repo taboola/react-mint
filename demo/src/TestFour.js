@@ -24,29 +24,30 @@ export class TestFour extends Component {
             display: 'inline-block',
             backgroundColor: 'purple',
             width: 50,
-            height: 50
+            height: 50,
+            position: 'relative',
           }}
           // onClick={() => this.setState(({clicked}) => ({
           //   width: 200,
           //   clicked: !clicked
           // }))}
         >
-          <Tooltip position={'top-end'} test={this.state.width} showing={true} interactive={true}>
+          <Tooltip position={'top-end'} test={this.state.width} showing={true} interactive={true} inline={true}>
             <div style={{width: 100}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'right-end'} test={this.state.width} showing={true} interactive={true}>
+          <Tooltip position={'right-end'} test={this.state.width} showing={true} interactive={true} inline={true}>
             <div style={{height: 100}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'left-start'} test={this.state.width} showing={true} interactive={true}>
+          <Tooltip position={'left-start'} test={this.state.width} showing={true} interactive={true} inline={true}>
             <div style={{height: 100}}>
               {'test tip'}
             </div>
           </Tooltip>
-          <Tooltip position={'bottom-start'} test={this.state.width} showing={true} interactive={true}>
+          <Tooltip position={'bottom-start'} test={this.state.width} showing={true} interactive={true} inline={true}>
             <div style={{width: 100}}>
               {'test tip'}
             </div>
