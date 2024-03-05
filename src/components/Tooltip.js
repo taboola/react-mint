@@ -1,33 +1,47 @@
-import React, { Component, createRef } from 'react';
-import PropTypes from 'prop-types';
-import { createPortal } from 'react-dom'
+import React, { Component, createRef } from "react";
+import PropTypes from "prop-types";
+import { createPortal } from "react-dom";
 
-import { shallowEqualForeignProps, defaultPortalId } from '../utils'
-import Memoize from 'memoize-one'
+import { shallowEqualForeignProps, defaultPortalId } from "../utils";
+import Memoize from "memoize-one";
 
 const defaultTailHeight = 6;
 const defaultOffset = 6;
 const defaultOffsetBody = 0;
 const getDefaultTransitionStyle = (entering) => ({
   opacity: entering ? 1 : 0,
-  transitionProperty: 'opacity'
-})
+  transitionProperty: "opacity",
+});
 const defaultStyle = {
-  background: '#282828',
-}
+  background: "#282828",
+};
 const defaultBoxStyle = {
   borderRadius: 4,
   padding: 8,
-  color: '#fff',
-}
-const getTailHeight = (width) => width * .866
+  color: "#fff",
+};
+const getTailHeight = (width) => width * 0.866;
+
+const scrollRefPropType = PropTypes.oneOfType([
+  PropTypes.instanceOf(Element),
+  PropTypes.object,
+]);
 
 export const tooltipPropTypes = {
   position: PropTypes.oneOf([
-    'top', 'top-start', 'top-end',
-    'bottom', 'bottom-start', 'bottom-end',
-    'left', 'left-start', 'left-end', 
-    'right', 'right-start', 'right-end']),
+    "top",
+    "top-start",
+    "top-end",
+    "bottom",
+    "bottom-start",
+    "bottom-end",
+    "left",
+    "left-start",
+    "left-end",
+    "right",
+    "right-start",
+    "right-end",
+  ]),
   style: PropTypes.object,
   boxStyle: PropTypes.object,
   tailStyle: PropTypes.object,
@@ -43,19 +57,21 @@ export const tooltipPropTypes = {
   inline: PropTypes.bool,
   interactive: PropTypes.bool,
   autoFlip: PropTypes.bool,
-}
+  scrollRef: scrollRefPropType,
+  scrollRefs: PropTypes.arrayOf(scrollRefPropType),
+  listenToAllParentScrolls: PropTypes.bool,
+};
 
 export class Tooltip extends Component {
   static propTypes = {
     ...tooltipPropTypes,
     children: PropTypes.node.isRequired,
     sourceRef: PropTypes.instanceOf(Element),
-    scrollRef: PropTypes.instanceOf(Element),
     entering: PropTypes.bool,
     duration: PropTypes.number,
-  }
+  };
   static defaultProps = {
-    position: 'top',
+    position: "top",
     getTransitionStyle: getDefaultTransitionStyle,
     style: defaultStyle,
     boxStyle: defaultBoxStyle,
@@ -67,8 +83,8 @@ export class Tooltip extends Component {
     inline: false,
     interactive: false,
     autoFlip: true,
-  }
-  static onScroll = () => Tooltip.scrollers.forEach(thunk => thunk())
+    listenToAllParentScrolls: false,
+  };
   static scrollers = [];
   state = {
     width: 0,
@@ -77,7 +93,7 @@ export class Tooltip extends Component {
     left: 0,
     absoluteTop: 0,
     absoluteLeft: 0,
-  }
+  };
   tooltipRef = createRef();
   sourceRect = {
     top: 0,
@@ -92,28 +108,22 @@ export class Tooltip extends Component {
   portalRect = {
     top: 0,
     left: 0,
-  }
-  scrollParent = null;
-  scrollParentThunk = null;
+  };
+  scrollParents = [];
   throttling = false;
   unmounted = false;
   componentDidMount = () => {
     this.setPosition();
     this.findScrollParent();
-    Tooltip.scrollers.push(this.onScroll)
-  }
+  };
   componentWillUnmount = () => {
     this.unmounted = true;
-    // if(this.scrollParent) {
-    //   this.scrollParent.onscroll = this.scrollParentThunk;
-    // }
-    Tooltip.scrollers = Tooltip.scrollers.filter(thunk => thunk !== this.onScroll)
-  }
+    this.scrollParents.forEach((el) => {
+      el.removeEventListener("scroll", this.onScroll);
+    });
+  };
   componentDidUpdate = (prevProps) => {
-    const {
-      sourceRef: prevSourceRef,
-      portalId: prevPortalId,
-    } = prevProps
+    const { sourceRef: prevSourceRef, portalId: prevPortalId } = prevProps;
     const {
       sourceRef,
       portalId,
@@ -123,16 +133,18 @@ export class Tooltip extends Component {
       tailHeight,
       offset,
       offsetBody,
-      autoFlip
-    } = this.props
-    if(!pure || !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)) {
-      this.setPosition()
-    }
-    else {
-      if(portalId !== prevPortalId) {
+      autoFlip,
+    } = this.props;
+    if (
+      !pure ||
+      !shallowEqualForeignProps(this.props, prevProps, Tooltip.propTypes)
+    ) {
+      this.setPosition();
+    } else {
+      if (portalId !== prevPortalId) {
         this.setPortalRect();
       }
-      if(sourceRef !== prevSourceRef) {
+      if (sourceRef !== prevSourceRef) {
         this.setSourceRect();
         this.findScrollParent();
       }
@@ -153,9 +165,9 @@ export class Tooltip extends Component {
         this.portalRect.width,
         this.portalRect.height,
         autoFlip
-      )
+      );
     }
-  }
+  };
 
   setPosition = () => {
     const {
@@ -358,260 +370,308 @@ export class Tooltip extends Component {
     };
   };
   setSourceRect = () => {
-    const { sourceRef } = this.props
-    if(sourceRef) {
-      this.sourceRect = (sourceRef.current || sourceRef).getBoundingClientRect();
+    const { sourceRef } = this.props;
+    if (sourceRef) {
+      this.sourceRect = (
+        sourceRef.current || sourceRef
+      ).getBoundingClientRect();
     }
     return this.sourceRect;
-  }
+  };
   setTooltipRect = () => {
-    if(this.tooltipRef.current) {
+    if (this.tooltipRef.current) {
       this.tooltipRect = this.tooltipRef.current.getBoundingClientRect();
     }
     return this.tooltipRect;
-  }
+  };
   setPortalRect = () => {
-    const { portalId, inline } = this.props
-    if(portalId && !inline) {
-      this.portalRect = document.getElementById(portalId).getBoundingClientRect();
+    const { portalId, inline } = this.props;
+    if (portalId && !inline) {
+      this.portalRect = document
+        .getElementById(portalId)
+        .getBoundingClientRect();
     }
-    return this.portalRect
-  }
+    return this.portalRect;
+  };
   findScrollParent = () => {
-    const { sourceRef, scrollRef } = this.props;
-    let scrollParent = null;
-    if(scrollRef) {
-      scrollParent = (scrollRef || scrollRef.current)
-    }
-    else {
+    const { sourceRef, scrollRef, scrollRefs, listenToAllParentScrolls } =
+      this.props;
+    let scrollParents = [];
+    if (scrollRef) {
+      scrollParents = [scrollRef.current || scrollRef];
+    } else if (scrollRefs) {
+      scrollParents = scrollRefs.map((ref) => ref.current || ref);
+    } else {
       let el = sourceRef;
       while (el && el.parentNode && el.parentNode !== document) {
         el = el.parentNode;
-        const style = getComputedStyle(el)
-        if(
-          style && (
-            style['overflow-y'] === 'scroll'
-            || style['overflow-y'] === 'auto'
-              || style['overflow-x'] === 'scroll'
-                || style['overflow-x'] === 'auto'
-                  || style['overflow'] === 'scroll'
-                    || style['overflow'] === 'auto'
-          )
+        const style = getComputedStyle(el);
+        if (
+          style &&
+          (style["overflow-y"] === "scroll" ||
+            style["overflow-y"] === "auto" ||
+            style["overflow-x"] === "scroll" ||
+            style["overflow-x"] === "auto" ||
+            style["overflow"] === "scroll" ||
+            style["overflow"] === "auto")
         ) {
-          scrollParent = el;
-          break;
+          scrollParents = [...scrollParents, el];
+          if (!listenToAllParentScrolls) {
+            break;
+          }
         }
       }
+      if (listenToAllParentScrolls) {
+        scrollParents = [...scrollParents, window];
+      }
     }
-    if(scrollParent && this.scrollParent !== scrollParent) {
-      this.scrollParent = scrollParent;
-      this.scrollParentThunk = scrollParent.onscroll;
-      // this.scrollParent.onscroll = () => {
-      //   this.onScroll();
-      //   this.scrollParentThunk && this.scrollParentThunk();
-      // }
-      this.scrollParent.onscroll = Tooltip.onScroll
-    }
-  }
+    scrollParents.forEach((el) => {
+      if (el && !this.scrollParents.includes(el)) {
+        el.addEventListener("scroll", this.onScroll);
+        this.scrollParents.push(el);
+      }
+    });
+  };
   onScroll = () => {
     if (!this.throttling) {
       this.throttling = true;
       this.setPosition();
       window.requestAnimationFrame(() => {
-        if(this.unmounted) return;
+        if (this.unmounted) return;
         this.throttling = false;
       });
     }
-  }
-  getStyles = Memoize((style, boxStyle, tailStyle, getTransitionStyle, entering, duration, position) => {
-    const {
-      transition,
-      transitionProperty,
-      transitionDuration=`${duration}ms`,
-      transitionTimingFunction='ease-out',
-      transitionDelay,
-
-      transform,
-      padding,
-      opacity,
-
-      ...rest
-    } = {
-      ...style,
-      ...(getTransitionStyle && getTransitionStyle(entering, duration, position))
-    }
-    let transitionStyle = null;
-    if(transition) {
-      transitionStyle = { transition }
-    }
-    else if(transitionProperty) {
-      transitionStyle = {
+  };
+  getStyles = Memoize(
+    (
+      style,
+      boxStyle,
+      tailStyle,
+      getTransitionStyle,
+      entering,
+      duration,
+      position
+    ) => {
+      const {
+        transition,
         transitionProperty,
-        transitionDuration,
-        transitionTimingFunction,
+        transitionDuration = `${duration}ms`,
+        transitionTimingFunction = "ease-out",
         transitionDelay,
-      }
-    }
-    const mergedBoxStyle = {
-      ...boxStyle,
-      ...rest,
-    }
-    const mergedMaskStyle = Object.entries(mergedBoxStyle).reduce((style, [key, value]) => {
-      if((!/^border/.test(key) && !/^padding/.test(key) && key !== 'boxShadow') || key === 'borderRadius') {
-        style[key] = value;
-      }
-      return style;
-    }, {})
-    return {
-      boxStyle: {
+
         transform,
         padding,
         opacity,
-        ...mergedBoxStyle,
-        ...transitionStyle,
-      },
-      maskStyle: {
-        ...mergedMaskStyle,
-        ...transitionStyle,
-      },
-      tailStyle: {
-        ...tailStyle,
-        ...rest,
-        ...transitionStyle,
+
+        ...rest
+      } = {
+        ...style,
+        ...(getTransitionStyle &&
+          getTransitionStyle(entering, duration, position)),
+      };
+      let transitionStyle = null;
+      if (transition) {
+        transitionStyle = { transition };
+      } else if (transitionProperty) {
+        transitionStyle = {
+          transitionProperty,
+          transitionDuration,
+          transitionTimingFunction,
+          transitionDelay,
+        };
       }
+      const mergedBoxStyle = {
+        ...boxStyle,
+        ...rest,
+      };
+      const mergedMaskStyle = Object.entries(mergedBoxStyle).reduce(
+        (style, [key, value]) => {
+          if (
+            (!/^border/.test(key) &&
+              !/^padding/.test(key) &&
+              key !== "boxShadow") ||
+            key === "borderRadius"
+          ) {
+            style[key] = value;
+          }
+          return style;
+        },
+        {}
+      );
+      return {
+        boxStyle: {
+          transform,
+          padding,
+          opacity,
+          ...mergedBoxStyle,
+          ...transitionStyle,
+        },
+        maskStyle: {
+          ...mergedMaskStyle,
+          ...transitionStyle,
+        },
+        tailStyle: {
+          ...tailStyle,
+          ...rest,
+          ...transitionStyle,
+        },
+      };
     }
-  })
+  );
 
   getTooltipStyle = Memoize((top, left, interactive) => {
     return {
-      position: 'absolute',
+      position: "absolute",
       zIndex: 10,
-      pointerEvents: !interactive && 'none',
+      pointerEvents: !interactive && "none",
       top,
       left,
-    }
-  })
+    };
+  });
 
-  getInteractiveStyle = Memoize((position, tailHeight, offset, sourceWidth, sourceHeight, offsetWidth, offsetHeight) => {
-    const totalOffset = tailHeight + offset;
-    let positionStyle = null;
-    switch(position) {
-      case 'left':
-      case 'left-start':
-      case 'left-end':
-        positionStyle = {
-          right: -totalOffset,
-          top: offsetHeight,
-          width: totalOffset,
-        }
-        break;
-      case 'bottom':
-      case 'bottom-start':
-      case 'bottom-end':
-        positionStyle = {
-          top: -totalOffset,
-          left: offsetWidth,
-          height: totalOffset,
-        }
-        break;
-      case 'right':
-      case 'right-start':
-      case 'right-end':
-        positionStyle = {
-          left: -totalOffset,
-          top: offsetHeight,
-          width: totalOffset,
-        }
-        break;
-      default:
-        positionStyle = {
-          bottom: -totalOffset,
-          left: offsetWidth,
-          height: totalOffset,
-        }
-        break;
+  getInteractiveStyle = Memoize(
+    (
+      position,
+      tailHeight,
+      offset,
+      sourceWidth,
+      sourceHeight,
+      offsetWidth,
+      offsetHeight
+    ) => {
+      const totalOffset = tailHeight + offset;
+      let positionStyle = null;
+      switch (position) {
+        case "left":
+        case "left-start":
+        case "left-end":
+          positionStyle = {
+            right: -totalOffset,
+            top: offsetHeight,
+            width: totalOffset,
+          };
+          break;
+        case "bottom":
+        case "bottom-start":
+        case "bottom-end":
+          positionStyle = {
+            top: -totalOffset,
+            left: offsetWidth,
+            height: totalOffset,
+          };
+          break;
+        case "right":
+        case "right-start":
+        case "right-end":
+          positionStyle = {
+            left: -totalOffset,
+            top: offsetHeight,
+            width: totalOffset,
+          };
+          break;
+        default:
+          positionStyle = {
+            bottom: -totalOffset,
+            left: offsetWidth,
+            height: totalOffset,
+          };
+          break;
+      }
+      return {
+        position: "absolute",
+        width: sourceWidth,
+        height: sourceHeight,
+        ...positionStyle,
+      };
     }
-    return {
-      position: 'absolute',
-      width: sourceWidth,
-      height: sourceHeight,
-      ...positionStyle,
-    }
-  })
+  );
 
   getMaskStyle = Memoize((maskStyle) => {
     return {
-      width: '100%',
-      height: '100%',
-      position: 'absolute',
+      width: "100%",
+      height: "100%",
+      position: "absolute",
       zIndex: 1,
       left: 0,
       right: 0,
       top: 0,
       bottom: 0,
-      margin: 'auto',
-      ...maskStyle
-    }
-  })
+      margin: "auto",
+      ...maskStyle,
+    };
+  });
 
-  getTailStyle = Memoize((position, tailHeight, tailStyle, offsetBody, sourceWidth, sourceHeight, offsetWidth, offsetHeight) => {
-    const vertical = !(position === 'right' || position === 'left')
-    const start = !(position === 'bottom' || position === 'right')
-    const style = {
-      width: tailHeight * 1.41,
-      height: tailHeight * 1.41,
-      position: 'absolute',
-      zIndex: 0,
-      ...tailStyle
+  getTailStyle = Memoize(
+    (
+      position,
+      tailHeight,
+      tailStyle,
+      offsetBody,
+      sourceWidth,
+      sourceHeight,
+      offsetWidth,
+      offsetHeight
+    ) => {
+      const vertical = !(position === "right" || position === "left");
+      const start = !(position === "bottom" || position === "right");
+      const style = {
+        width: tailHeight * 1.41,
+        height: tailHeight * 1.41,
+        position: "absolute",
+        zIndex: 0,
+        ...tailStyle,
+      };
+      switch (position) {
+        case "right":
+        case "right-start":
+        case "right-end":
+          return {
+            top: sourceHeight / 2 + offsetHeight - offsetBody,
+            bottom: 0,
+            left: 0,
+            transform: "translate(-50%, -50%) rotate(45deg)",
+            ...style,
+          };
+        case "bottom":
+        case "bottom-start":
+        case "bottom-end":
+          return {
+            top: 0,
+            right: 0,
+            left: sourceWidth / 2 + offsetWidth - offsetBody,
+            transform: "translate(-50%, -50%) rotate(45deg)",
+            ...style,
+          };
+        case "left":
+        case "left-start":
+        case "left-end":
+          return {
+            top: sourceHeight / 2 + offsetHeight - offsetBody,
+            right: 0,
+            bottom: 0,
+            transform: "translate(50%, -50%) rotate(45deg)",
+            ...style,
+          };
+        default:
+          return {
+            right: 0,
+            bottom: 0,
+            left: sourceWidth / 2 + offsetWidth - offsetBody,
+            transform: "translate(-50%, 50%) rotate(45deg)",
+            ...style,
+          };
+      }
     }
-    switch(position) {
-      case 'right':
-      case 'right-start':
-      case 'right-end':
-        return {
-          top: sourceHeight / 2 + offsetHeight - offsetBody,
-          bottom: 0,
-          left: 0,
-          transform: 'translate(-50%, -50%) rotate(45deg)',
-          ...style,
-        }
-      case 'bottom':
-      case 'bottom-start':
-      case 'bottom-end':
-        return {
-          top: 0,
-          right: 0,
-          left: sourceWidth / 2 + offsetWidth - offsetBody,
-          transform: 'translate(-50%, -50%) rotate(45deg)',
-          ...style,
-        }
-      case 'left':
-      case 'left-start':
-      case 'left-end':
-        return {
-          top: sourceHeight / 2 + offsetHeight - offsetBody,
-          right: 0,
-          bottom: 0,
-          transform: 'translate(50%, -50%) rotate(45deg)',
-          ...style,
-        }
-      default:
-        return {
-          right: 0,
-          bottom: 0,
-          left: sourceWidth / 2 + offsetWidth - offsetBody,
-          transform: 'translate(-50%, 50%) rotate(45deg)',
-          ...style,
-        }
-    }
-  })
+  );
   getPortalElement = Memoize((portalId) => {
     const element = document.getElementById(portalId);
-    if(!element && process.env.NODE_ENV !== 'production') {
-      throw new Error(`Could not find DOM element with ID ${portalId} to inject. Please provide a portalId which matches an existing DOM element or render a TooltipPortal as a parent to this element.`)
+    if (!element && process.env.NODE_ENV !== "production") {
+      throw new Error(
+        `Could not find DOM element with ID ${portalId} to inject. Please provide a portalId which matches an existing DOM element or render a TooltipPortal as a parent to this element.`
+      );
     }
     return element;
-  })
+  });
   render = () => {
     const {
       children,
@@ -631,44 +691,74 @@ export class Tooltip extends Component {
       boxClassName,
       maskClassName,
       tailClassName,
-    } = this.props
+    } = this.props;
 
-    const {
-      top,
-      left,
-      absoluteTop,
-      absoluteLeft,
-      position
-    } = this.state
-    let element = null; 
-    if(!inline && portalId) {
+    const { top, left, absoluteTop, absoluteLeft, position } = this.state;
+    let element = null;
+    if (!inline && portalId) {
       element = this.getPortalElement(portalId);
     }
-    const {
-      boxStyle,
-      maskStyle,
-      tailStyle,
-    } = this.getStyles(style, propBoxStyle, propTailStyle, getTransitionStyle, entering, duration, position)
+    const { boxStyle, maskStyle, tailStyle } = this.getStyles(
+      style,
+      propBoxStyle,
+      propTailStyle,
+      getTransitionStyle,
+      entering,
+      duration,
+      position
+    );
     const {
       top: sourceTop,
       left: sourceLeft,
       width: sourceWidth,
       height: sourceHeight,
-    } =  this.sourceRect
-    const offsetWidth = sourceLeft - absoluteLeft
-    const offsetHeight = sourceTop - absoluteTop
+    } = this.sourceRect;
+    const offsetWidth = sourceLeft - absoluteLeft;
+    const offsetHeight = sourceTop - absoluteTop;
     const tooltip = (
-      <div style={this.getTooltipStyle(top, left, interactive)} ref={this.tooltipRef}>
-        {interactive && <div style={this.getInteractiveStyle(position, tailHeight, offset, sourceWidth, sourceHeight, offsetWidth, offsetHeight)}/>}
+      <div
+        style={this.getTooltipStyle(top, left, interactive)}
+        ref={this.tooltipRef}
+      >
+        {interactive && (
+          <div
+            style={this.getInteractiveStyle(
+              position,
+              tailHeight,
+              offset,
+              sourceWidth,
+              sourceHeight,
+              offsetWidth,
+              offsetHeight
+            )}
+          />
+        )}
         <div style={boxStyle} className={boxClassName}>
-          <div style={{position: 'relative', zIndex: 2}}>
-            {children}
-          </div>
-          {tailHeight > 0 && <div style={this.getMaskStyle(maskStyle)} className={maskClassName}/>}
-          {tailHeight > 0 && <div style={this.getTailStyle(position, tailHeight, tailStyle, offsetBody, sourceWidth, sourceHeight, offsetWidth, offsetHeight)} className={tailClassName} />}
+          <div style={{ position: "relative", zIndex: 2 }}>{children}</div>
+          {tailHeight > 0 && (
+            <div
+              style={this.getMaskStyle(maskStyle)}
+              className={maskClassName}
+            />
+          )}
+          {tailHeight > 0 && (
+            <div
+              style={this.getTailStyle(
+                position,
+                tailHeight,
+                tailStyle,
+                offsetBody,
+                sourceWidth,
+                sourceHeight,
+                offsetWidth,
+                offsetHeight
+              )}
+              className={tailClassName}
+            />
+          )}
         </div>
       </div>
-    )
-    return element ? createPortal(tooltip, element) : tooltip
-  }
+    );
+    return element ? createPortal(tooltip, element) : tooltip;
+  };
 }
