@@ -166,9 +166,17 @@ is not provided then the tooltip will switch to inline mode
 The ref of the innermost DOM element that will be scrollable. The tooltip naturally hooks onto this element, but in the event that it hooks onto the wrong element due to stray css properties on earlier
 elements, you can manually pass in the ref as a workaround. This information is necessary to allow the tooltip to follow along when scrolling and to prevent duplication issues
 
+**scrollRefs** : React ref (default: undefined)
+An array of scrollRefs, each element in the array will be hooked onto
+
 **sourceRef** : React ref (default: undefined)
 
 The ref of the component you want the tooltip to treat as its 'parent'. Typically you should not use this, as it has niche uses and makes the code hard to understand, but it exists if you need the functionality
+
+**listenToAllParentScrolls** : boolean (default: false)
+
+Set this to true to make the tooltip hook onto all scrollable DOM parents. Normally not useful, but can be helpful when dealing with tooltips that
+exist inside multiple scrollable areas
 
 ### `<TooltipPortal>`
 
